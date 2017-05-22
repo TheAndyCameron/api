@@ -13,7 +13,7 @@
   "dependencies": {
     "apicache": "^0.8.3",
     "apidoc": "^0.17.5",
-    "async": "^2.3.0",
+    "async": "^2.4.1",
     "aws-sdk": "^2.41.0",
     "babel": "^6.23.0",
     "babel-cli": "^6.23.0",
