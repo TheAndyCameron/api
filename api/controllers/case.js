@@ -10,6 +10,7 @@ const {
   getEditXById,
   addRelatedList,
   returnThingByRequest,
+  getThingByRequest,
   getThingByType_id_lang_userId
 } = require("../helpers/things");
 
@@ -284,3 +285,33 @@ router.delete("/:thingid", function editCaseById(req, res) {
 });
 
 module.exports = router;
+
+
+
+router.get("/csv/:thingid", async function returnCSVCase(req, res) {
+  try {
+    const caseObj = await getThingByRequest("case", req);
+    //res.send(200, String(caseObj));
+    res.status(200).json({OK: true, data: JSON.stringify(caseObj)});
+  } catch (error) {
+    log.error("Exception in GET CSV case data", req.params.thingid, error);
+    res.status(500).json({ OK: false, error: error});
+  }
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
