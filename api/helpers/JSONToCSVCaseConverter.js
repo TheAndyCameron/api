@@ -1,6 +1,4 @@
-module.exports = {
-
-convertToCSV: function(caseJSONList){
+const convertToCSV = function(caseJSONList){
 	
 	var csvString = getCSVHeaders();
 	var csvString = csvString + "\n";
@@ -59,7 +57,7 @@ convertToCSV: function(caseJSONList){
 	
 	return csvString;
 }
-};
+
 
 const getCSVHeaders = function(){
 	
@@ -133,6 +131,7 @@ const formatListStructure = function(list){
 		}
 		formattedList = formattedList + String(list[n]);
 	}
+	return formattedList;
 }
 
 const formatAuthors = function(authorList){
@@ -168,4 +167,10 @@ const prepareValue = function(val){
 	}else {
 		return String(val);
 	}
+}
+
+module.exports = {
+    convertToCSV,
+    prepareValue,
+    formatListStructure
 }
