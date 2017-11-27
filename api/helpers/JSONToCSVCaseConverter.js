@@ -1,6 +1,6 @@
+module.exports = {
 
-
-function convertToCSV(caseJSONList){
+convertToCSV: function(caseJSONList){
 	
 	var csvString = getCSVHeaders();
 	var csvString = csvString + "\n";
@@ -59,8 +59,9 @@ function convertToCSV(caseJSONList){
 	
 	return csvString;
 }
+};
 
-function getCSVHeaders(){
+const getCSVHeaders = function(){
 	
 	var headers = "";
 	headers = headers + "id,";
@@ -124,7 +125,7 @@ function getCSVHeaders(){
 }
 
 
-function formatListStructure(list){
+const formatListStructure = function(list){
 	var formattedList = "";
 	for (var n = 0; n < list.length; n++){
 		if (n != 0){
@@ -134,7 +135,7 @@ function formatListStructure(list){
 	}
 }
 
-function formatAuthors(authorList){
+const formatAuthors = function(authorList){
 	var authorIDs = [];
 	var authorTSs = [];
 	var authorNames = [];
@@ -148,7 +149,7 @@ function formatAuthors(authorList){
 	return formatListStructure(authorIDs) + "," + formatListStructure(authorTSs) + "," + formatListStructure(authorNames);
 }
 
-function formatLocation(location){
+const formatLocation = function(location){
 	var formattedLocation = prepareValue(location["name"]) + ",";
 	formattedLocation = formattedLocation + prepareValue(location["address1"]) + ",";
 	formattedLocation = formattedLocation + prepareValue(location["address2"]) + ",";
@@ -161,7 +162,7 @@ function formatLocation(location){
 	return formattedLocation;
 }
 
-function prepareValue(val){
+const prepareValue = function(val){
 	if (val == null){
 		return "";
 	}else {
