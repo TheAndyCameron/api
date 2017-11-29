@@ -161,17 +161,7 @@ const formatObjectList = function(objList){
 }
 
 const formatAuthors = function(authorList){
-	var authorIDs = [];
-	var authorTSs = [];
-	var authorNames = [];
-	
-	for (var n = 0; n < authorList.length; n++){
-		authorIDs.push(authorList[n]["user_id"]);
-		authorTSs.push(authorList[n]["timestamp"]);
-		authorNames.push(authorList[n]["name"]);
-	}
-	
-	return formatListStructure(authorIDs) + "," + formatListStructure(authorTSs) + "," + formatListStructure(authorNames);
+	return formatObjectList(authorList);
 }
 
 const formatLocation = function(location){
