@@ -293,6 +293,7 @@ module.exports = router;
 router.get("/csv/:thingid", async function returnCSVCase(req, res) {
   try {
     const caseObj = await getThingByRequest("case", req);
+    res.setHeader('content-type', 'text/csv');
     res.status(200).send(convertToCSV([caseObj]));
     //res.status(200).json({OK: true, data: JSON.stringify(caseObj)});
   } catch (error) {
@@ -300,20 +301,4 @@ router.get("/csv/:thingid", async function returnCSVCase(req, res) {
     res.status(500).json({ OK: false, error: error});
   }
 });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
