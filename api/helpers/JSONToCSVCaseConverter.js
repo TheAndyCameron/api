@@ -129,7 +129,7 @@ const formatListStructure = function(list){
 		if (n != 0){
 			formattedList = formattedList + "|";
 		}
-		formattedList = formattedList + String(list[n]);
+		formattedList = formattedList + prepareValue(list[n]);
 	}
 	return formattedList;
 }

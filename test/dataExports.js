@@ -40,7 +40,7 @@ describe('CSV Converter Functions', function(){
         
         it('Pipe character should be escaped', function(){
             var strWithPipe = "Look at my pipe | I like it";
-            var strWithEscapedPipe = "Look at my pipe \| I like it";
+            var strWithEscapedPipe = "Look at my pipe \\| I like it";
             assert.equal(strWithEscapedPipe, CSVConverter.prepareValue(strWithPipe));
         });
     });
@@ -72,7 +72,7 @@ describe('CSV Converter Functions', function(){
         
         it('Should escape any pipe characters pre-existing in the list.', function(){
             var list = ["First", "Last|More Last"];
-            var expectedStr = "First|Last\|More Last";
+            var expectedStr = "First|Last\\|More Last";
             assert.equal(expectedStr, CSVConverter.formatListStructure(list));
         });
     });
