@@ -129,9 +129,35 @@ const formatListStructure = function(list){
 		if (n != 0){
 			formattedList = formattedList + "|";
 		}
-		formattedList = formattedList + prepareValue(list[n]);
+		formattedList = formattedList + formatNonListValue(list[n]);
 	}
-	return formattedList;
+	return escapeCommas(formattedList);
+}
+
+const formatObjectList = function(objList){
+	var listsData = {};
+
+	//Restructures data from a list of objects to an object containing lists.
+	for (var i = 0; i < objList.length; i++){
+		//loop through all keys for each object.
+		for (var k = 0; k < Object.keys(objList[i]).length; k++){
+			var key = Object.keys(objList[i])[k];
+			//if the key is not seen before, create a new list under the same name. (should only happen on first object)
+			if (!(key in listsData)){
+				listsData[key] = [];
+			}
+			listsData[key].push(objList[i][key]);
+		}
+	}
+
+	//Build a string containing all required columns in this list of objects.
+	var returnString = "";
+	for (var i = 0; i < Object.keys(listsData).length; i++){
+		returnString = returnString + "," + formatListStructure(listsData[Object.keys(listsData)[i]]);
+	}
+	//remove leading ","
+	returnString = returnString.substring(1);
+	return returnString;
 }
 
 const formatAuthors = function(authorList){
@@ -162,15 +188,38 @@ const formatLocation = function(location){
 }
 
 const prepareValue = function(val){
+	return escapeCommas(formatNonListValue(val));
+}
+
+const formatNonListValue = function(val){
 	if (val == null){
 		return "";
 	}else {
-		return String(val);
+		return escapePipes(String(val));
 	}
 }
+
+const escapeCommas = function(val){
+	if (val.indexOf(',') !== -1){
+		var val2 = val.replace(/"/g, '""');
+		return '"' + val2 + '"';
+	}else{
+		return val;
+	}
+}
+
+//Replace occurances of "|" with "\|" as an escape to avoid confusion later.
+const escapePipes = function(val){
+	if (val.indexOf('|') !== -1){
+		return val.replace(/\|/g, "\\|");
+	}
+	return val;
+}
+
 
 module.exports = {
     convertToCSV,
     prepareValue,
-    formatListStructure
+    formatListStructure,
+    formatObjectList
 }

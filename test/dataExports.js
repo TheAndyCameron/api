@@ -37,6 +37,12 @@ describe('CSV Converter Functions', function(){
             //var strWithEscapedComma = "Oh no\, I dislike tests.";     //Unix friendly
             assert.equal(strWithEscapedComma, CSVConverter.prepareValue(strWithComma));
         });
+
+	it('Comma character should be escaped and escape double quotes that should be kept.', function(){
+            var strWithComma = '"Oh no, I dislike tests," she said.';
+            var strWithEscapedComma = '"""Oh no, I dislike tests,"" she said."';    //Excel friendly (Assumed best based on use cases?)
+            assert.equal(strWithEscapedComma, CSVConverter.prepareValue(strWithComma));
+        });
         
         it('Pipe character should be escaped', function(){
             var strWithPipe = "Look at my pipe | I like it";
@@ -78,7 +84,46 @@ describe('CSV Converter Functions', function(){
     });
     
     describe('Format Object List Tests', function(){
-        //TODO
+        it('Should separate fields into individual consecutive lists.', function(){
+            var objList = [{a:"Hello", b:"There", c:"You!"}, {a:"Goodbye", b:"There", c:"Jim"}];
+            var expectedStr = "Hello|Goodbye,There|There,You!|Jim";
+            assert.equal(expectedStr, CSVConverter.formatObjectList(objList));
+        });
+
+        it('Should work with numerical values.', function(){
+            var objList = [{a:1, b:2, c:3}, {a:4, b:5, c:6}];
+            var expectedStr = "1|4,2|5,3|6";
+            assert.equal(expectedStr, CSVConverter.formatObjectList(objList));
+        });
+
+        it('Should work with null values', function(){
+            var objList = [{a:null, b:null, c:null}, {a:null, b:null, c:null}];
+            var expectedStr = "|,|,|";
+            assert.equal(expectedStr, CSVConverter.formatObjectList(objList));
+        });
+
+        it('Should work with a mix of types', function(){
+            var objList = [{a:"Hello", b:3, c:true}, {a:null, b:-42, c:false}];
+            var expectedStr = "Hello|,3|-42,true|false";
+            assert.equal(expectedStr, CSVConverter.formatObjectList(objList));
+        });
+
+        it('Should escape any comma characters, without affecting surrounding columns', function(){
+            var objList = [{a:"Hello", b:3, c:"Words"}, {a:"Goodbye", b:-42, c:"and, More Words"}];
+            var expectedStr = 'Hello|Goodbye,3|-42,"Words|and, More Words"';
+            assert.equal(expectedStr, CSVConverter.formatObjectList(objList));
+        });
+
+        it('Should escape Pipe charcters', function(){
+            var objList = [{a:"Hello|Greetings", b:3, c:true}, {a:"Goodbye|Cya later", b:-42, c:false}];
+            var expectedStr = "Hello\\|Greetings|Goodbye\\|Cya later,3|-42,true|false";
+            assert.equal(expectedStr, CSVConverter.formatObjectList(objList));
+        });
+
+        it('Should escape a combination of commas and pipe characters', function(){
+            var objList = [{a:"Hello", b:"A, B, and C", c:"Apples|Oranges"}, {a:"Goodbye|Cya", b:"DEF", c:"Melons, and Bananas"}];
+            var expectedStr = 'Hello|Goodbye\\|Cya,"A, B, and C|DEF","Apples\\|Oranges|Melons, and Bananas"';
+            assert.equal(expectedStr, CSVConverter.formatObjectList(objList));
+        });
     });
-    
 });
