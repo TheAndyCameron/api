@@ -129,9 +129,9 @@ const formatListStructure = function(list){
 		if (n != 0){
 			formattedList = formattedList + "|";
 		}
-		formattedList = formattedList + formatNonListValue(list[n]);
+		formattedList = formattedList + prepareValue(list[n]);
 	}
-	return escapeCommas(formattedList);
+	return escapeBadCharacters(formattedList);
 }
 
 const formatObjectList = function(objList){
@@ -177,33 +177,22 @@ const formatLocation = function(location){
 	return formattedLocation;
 }
 
-const prepareValue = function(val){
-	return escapeCommas(formatNonListValue(val));
-}
 
-const formatNonListValue = function(val){
+const prepareValue = function(val){
 	if (val == null){
 		return "";
 	}else {
-		return escapePipes(String(val));
+		return escapeBadCharacters(String(val));
 	}
 }
 
-const escapeCommas = function(val){
-	if (val.indexOf(',') !== -1){
+const escapeBadCharacters = function(val){
+	if (val.indexOf(',') !== -1 || val.indexOf('|') !== -1){
 		var val2 = val.replace(/"/g, '""');
 		return '"' + val2 + '"';
 	}else{
 		return val;
 	}
-}
-
-//Replace occurances of "|" with "\|" as an escape to avoid confusion later.
-const escapePipes = function(val){
-	if (val.indexOf('|') !== -1){
-		return val.replace(/\|/g, "\\|");
-	}
-	return val;
 }
 
 
