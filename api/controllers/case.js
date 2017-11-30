@@ -286,10 +286,10 @@ router.delete("/:thingid", function editCaseById(req, res) {
   res.status(200).json(req.body);
 });
 
-module.exports = router;
-
-
-
+/**
+ * //TODO api docs
+ *
+ */
 router.get("/csv/:thingid", async function returnCSVCase(req, res) {
   try {
     const caseObj = await getThingByRequest("case", req);
@@ -301,4 +301,6 @@ router.get("/csv/:thingid", async function returnCSVCase(req, res) {
     res.status(500).json({ OK: false, error: error});
   }
 });
+
+module.exports = router;
 

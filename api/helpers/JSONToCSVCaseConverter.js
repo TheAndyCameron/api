@@ -122,6 +122,117 @@ const getCSVHeaders = function(){
 	return headers;
 }
 
+const generateCSV = function(jsonList){
+    if(Array.isArray(jsonList) && jsonList.length > 0){
+        //Use the first object to generate the headers, then fill in data.
+        var csv = "";
+        csv = csv + findColumnHeadingsForStructure(jsonList[0]);
+        
+        for (var i = 0; i < jsonList.length; i++){
+            csv = csv + "\n";
+            csv = csv + formatGenericStructure(jsonList[i]);
+        }
+        
+        return csv;
+    }else{
+        return "";
+    }
+}
+
+
+const formatGenericStructure = function(jsonObj){
+    var row = "";
+
+    var objKeys = Object.keys(jsonObj);
+    for (var k = 0; k < objKeys.length; k++){
+        var field = jsonObj[objKeys[k]];
+    
+        switch(typeof field){
+            case 'object':
+                //Could be an actual object, or an array
+                if (Array.isArray(field)){
+                    //if array has no elements, do nothing
+                    if (field.length  == 0){
+                        break;
+                    }
+                    //list of objects or list of primitives?
+                    if (typeof field[0] == 'object'){
+                        row = row + formatObjectList(field);
+                    }else{
+                        row = row + formatListStructure(field);
+                    }
+                }else{
+                    //format an Object on it's own... recursion?
+                    row = row + formatGenericStructure(field);
+                }
+                break;
+            default:
+                row = row + prepareValue(field);
+        }
+        row = row + ",";
+    }
+    
+    //remove extra comma
+    if (row.length !== 0){
+        row = row.slice(0,-1);
+    }
+    
+    return row;
+}
+
+//Should work so long as all object lists contain at least one of its objects :/
+const findColumnHeadingsForStructure = function(jsonObj){
+    var headers = "";
+    var objKeys = Object.keys(jsonObj);
+    for (var k = 0; k < objKeys.length; k++){
+        var field = jsonObj[objKeys[k]];
+    
+        switch(typeof field){
+            case 'object':
+                //Could be an actual object, or an array
+                if (Array.isArray(field)){
+                    //if array has no elements, assume normal list??
+                    if (field.length  == 0){
+                        headers = headers + objKeys[k]+"_list";
+                        break;
+                    }
+                    //list of objects or list of primitives?
+                    if (typeof field[0] == 'object'){
+                        fieldObjKeys = Object.keys(field[0]);
+                        for (var fk = 0; fk < fieldObjKeys.length; fk++){
+                            if (fk !== 0){
+                                headers = headers + ",";
+                            }
+                            headers = headers + objKeys[k]+"_"+fieldObjKeys[fk]+"_list";
+                        }
+                        
+                    }else{
+                        headers = headers + objKeys[k]+"_list";
+                    }
+                }else{
+                    //headers for Object on it's own
+                    fieldObjKeys = Object.keys(field);
+                    for (var fk = 0; fk < fieldObjKeys.length; fk++){
+                        if (fk !== 0){
+                            headers = headers + ",";
+                        }
+                        headers = headers + objKeys[k]+"_"+fieldObjKeys[fk];
+                    }
+                }
+                break;
+            default:
+                headers = headers + objKeys[k];
+        }
+        headers = headers + ",";
+    }
+    //remove extra comma
+    if (headers.length !== 0){
+        headers = headers.slice(0,-1);
+    }
+    
+    return headers;
+}
+
 
 const formatListStructure = function(list){
 	var formattedList = "";
@@ -198,6 +309,7 @@ const escapeBadCharacters = function(val){
 
 module.exports = {
     convertToCSV,
+    generateCSV,
     prepareValue,
     formatListStructure,
     formatObjectList
