@@ -3,6 +3,7 @@ const express = require("express");
 const router = express.Router(); // eslint-disable-line new-cap
 const cache = require("apicache");
 const log = require("winston");
+const json2xmlparser = require("js2xmlparser");
 
 const { db, sql, as } = require("../helpers/db");
 
@@ -289,7 +290,6 @@ router.delete("/:thingid", function editCaseById(req, res) {
 module.exports = router;
 
 
-
 router.get("/csv/:thingid", async function returnCSVCase(req, res) {
   try {
     const caseObj = await getThingByRequest("case", req);
@@ -302,6 +302,35 @@ router.get("/csv/:thingid", async function returnCSVCase(req, res) {
 });
 
 
+router.get("/xml/:thingid", async function returnXMLCase(req, res) {
+  try {
+    const caseObj = await getThingByRequest("case", req);
+    const xmlObj = json2xmlparser.parse("case", caseObj);
+    res.setHeader('content-type','text/xml');
+    res.set({"Content-Type": "text/xml", "Content-Disposition": "attachment; filename=\"" + req.params.thingid + "\".xml"});
+    //res.status(200).send(xmlObj);
+    //res.write("Hello World! This is a test! |");
+    res.write(xmlObj);	  
+    res.end();
+  } catch (error) {
+    log.error("Exception in GET XML case data", req.params.thingid, error);
+    res.status(500).json({ OK: false, error: error});
+  }
+});
+
+
+
+
+
+//ids = await db.any(IDS_FOR_TYPE, { thingtype });
+
+
+//ids.forEach(async function(row) {
+//	req.params.thingid = Number(row.id);
+//	const caseObj = await getThingsByRequest("case", req);
+//	res.write(getCaseDetails(xmlObject) + "\n");
+//	
+//} 
 
 
 
