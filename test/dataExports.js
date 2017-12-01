@@ -160,7 +160,7 @@ describe('CSV Converter Functions', function(){
                 "baz2":"list obj 1| ele 2"
             },
             {
-                "baz1":"list obj 2| ele 1",
+                "baz1":"list obj 2; ele 1",
                 "baz2":"list obj 2, ele 2"
             }
             ],
@@ -214,7 +214,7 @@ describe('CSV Converter Functions', function(){
         
         it('Generate row in file with escaped characters', function(){
             var dataRow = CSVConverter.formatGenericStructure(objWithBadCharacters);
-            var expected = 'single Value,"""list, ele 1""|list ele 2|""list| ele 3""","Value inside, object 1","Value| inside object 2","""list obj 1, ele 1""|""list obj 2| ele 1""","""list obj 1| ele 2""|""list obj 2, ele 2""",,';
+            var expected = 'single Value,"""list, ele 1""|list ele 2|""list| ele 3""","Value inside, object 1","Value| inside object 2","""list obj 1, ele 1""|""list obj 2; ele 1""","""list obj 1| ele 2""|""list obj 2, ele 2""",,';
             assert.equal(dataRow, expected);
         });
         
