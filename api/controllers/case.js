@@ -314,6 +314,7 @@ router.get("/all/csv", async function returnAllCSVCases(req, res) {
     const thingtype = "case";
     const ids = await db.any(IDS_FOR_TYPE, { thingtype });
     res.setHeader('content-type', 'text/csv');
+    res.setHeader('content-disposition', 'attachment; filename=allcases.csv');
     var headersSent = false;
     var counter = 0;
 
