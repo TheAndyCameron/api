@@ -315,6 +315,7 @@ router.get("/all/csv", async function returnAllCSVCases(req, res) {
     const ids = await db.any(IDS_FOR_TYPE, { thingtype });
     res.setHeader('content-type', 'text/csv');
     var headersSent = false;
+    var counter = 0;
 
     ids.forEach(async function(row){
         req.params.thingid = Number(row.id);
@@ -324,8 +325,11 @@ router.get("/all/csv", async function returnAllCSVCases(req, res) {
             headersSent = true;
         }
         res.write(formatGenericStructure(caseObj)+"\n");
+        counter++;
+        if (counter == ids.length){
+            res.end();
+        }
     });
-    res.end();
   } catch (error) {
     log.error("Exception in GET all CSV case data", req.params.thingid, error);
     res.status(500).json({ OK: false, error: error });
