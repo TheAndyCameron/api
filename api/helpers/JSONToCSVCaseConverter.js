@@ -336,7 +336,7 @@ const prepareValue = function(val){
 
 const escapeBadCharacters = function(val){
 	val = val.replace(/\n|\r|\r\n/g, "<br />");
-	if (val.indexOf(',') !== -1 || val.indexOf('|') !== -1){
+	if (val.indexOf(',') !== -1 || val.indexOf('|') !== -1 || val.indexOf(';') !== -1){
 		var val2 = val.replace(/"/g, '""');
 		return '"' + val2 + '"';
 	}else{
