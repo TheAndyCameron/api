@@ -147,6 +147,11 @@ const formatGenericStructure = function(jsonObj){
     for (var k = 0; k < objKeys.length; k++){
         var field = jsonObj[objKeys[k]];
     
+        if(field == null){
+            row = row + ",";
+            continue;
+        }
+    
         switch(typeof field){
             case 'object':
                 //Could be an actual object, or an array
@@ -186,6 +191,11 @@ const findColumnHeadingsForStructure = function(jsonObj){
     var objKeys = Object.keys(jsonObj);
     for (var k = 0; k < objKeys.length; k++){
         var field = jsonObj[objKeys[k]];
+    
+        if(field == null){
+            headers = headers + objKeys[k] + ",";
+            continue;
+        }
     
         switch(typeof field){
             case 'object':

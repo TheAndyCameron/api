@@ -313,7 +313,7 @@ router.get("/all/csv", async function returnAllCSVCases(req, res) {
   try {
     const thingtype = "case";
     const ids = await db.any(IDS_FOR_TYPE, { thingtype });
-    //res.setHeader('content-type', 'text/csv');
+    res.setHeader('content-type', 'text/csv');
     var headersSent = false;
 
     ids.forEach(async function(row){
