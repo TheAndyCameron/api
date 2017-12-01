@@ -14,10 +14,16 @@ const {
   getThingByType_id_lang_userId
 } = require("../helpers/things");
 
-const { convertToCSV, getCSVHeaders } = require("../helpers/JSONToCSVCaseConverter");
+const {
+  convertToCSV,
+  getCSVHeaders,
+  formatGenericStructure,
+  findColumnHeadingsForStructure
+} = require("../helpers/JSONToCSVCaseConverter");
 
 const CASES_BY_COUNTRY = sql("../sql/cases_by_country.sql");
 const CREATE_CASE = sql("../sql/create_case.sql");
+const IDS_FOR_TYPE = sql("../sql/ids_for_type.sql");
 
 /**
  * @api {get} /case/countsByCountry Get case counts for each country
@@ -286,10 +292,10 @@ router.delete("/:thingid", function editCaseById(req, res) {
   res.status(200).json(req.body);
 });
 
-module.exports = router;
-
-
-
+/**
+ * //TODO api docs
+ *
+ */
 router.get("/csv/:thingid", async function returnCSVCase(req, res) {
   try {
     const caseObj = await getThingByRequest("case", req);
@@ -302,3 +308,33 @@ router.get("/csv/:thingid", async function returnCSVCase(req, res) {
   }
 });
 
+
+router.get("/all/csv", async function returnAllCSVCases(req, res) {
+  try {
+    const thingtype = "case";
+    const ids = await db.any(IDS_FOR_TYPE, { thingtype });
+    res.setHeader('content-type', 'text/csv');
+    res.setHeader('content-disposition', 'attachment; filename=allcases.csv');
+    var headersSent = false;
+    var counter = 0;
+
+    ids.forEach(async function(row){
+        req.params.thingid = Number(row.id);
+        const caseObj = await getThingByRequest("case", req);
+        if (!headersSent){
+            res.write(findColumnHeadingsForStructure(caseObj)+"\n");
+            headersSent = true;
+        }
+        res.write(formatGenericStructure(caseObj)+"\n");
+        counter++;
+        if (counter == ids.length){
+            res.end();
+        }
+    });
+  } catch (error) {
+    log.error("Exception in GET all CSV case data", req.params.thingid, error);
+    res.status(500).json({ OK: false, error: error });
+  }
+});
+
+module.exports = router;

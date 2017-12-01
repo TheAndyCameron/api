@@ -1,3 +1,12 @@
+const knownObjListKeys = {
+    "files":["files_url_list","files_title_list","files_size_list"],
+    "authors":["authors_user_id_list","authors_timestamp_list","authors_name_list"]
+    //TODO Related Cases
+    //TODO Related Methods
+    //TODO Related Organizations
+}
+
+
 const convertToCSV = function(caseJSONList){
 	
 	var csvString = getCSVHeaders();
@@ -122,6 +131,145 @@ const getCSVHeaders = function(){
 	return headers;
 }
 
+const generateCSV = function(jsonList){
+    if(Array.isArray(jsonList) && jsonList.length > 0){
+        //Use the first object to generate the headers, then fill in data.
+        var csv = "";
+        csv = csv + findColumnHeadingsForStructure(jsonList[0]);
+        
+        for (var i = 0; i < jsonList.length; i++){
+            csv = csv + "\n";
+            csv = csv + formatGenericStructure(jsonList[i]);
+        }
+        
+        return csv;
+    }else{
+        return "";
+    }
+}
+
+
+const formatGenericStructure = function(jsonObj){
+    var row = "";
+
+    var objKeys = Object.keys(jsonObj);
+    for (var k = 0; k < objKeys.length; k++){
+        var field = jsonObj[objKeys[k]];
+    
+        if(field == null){
+            row = row + ",";
+            continue;
+        }
+    
+        switch(typeof field){
+            case 'object':
+                //Could be an actual object, or an array
+                if (Array.isArray(field)){
+                    //if array has no elements, check known list fields for number of fields to skip
+                    //if we don't know the field, assume flat list.
+                    if (field.length  == 0){
+                        var knownKeys = Object.keys(knownObjListKeys);
+                        if (knownKeys.indexOf(objKeys[k]) != -1){
+                            for (var n = 0; n < knownObjListKeys[objKeys[k]].length -1; n++){
+                               row = row + ","; 
+                            }
+                        }
+                        break;
+                    }
+                    //list of objects or list of primitives?
+                    if (typeof field[0] == 'object'){
+                        row = row + formatObjectList(field);
+                    }else{
+                        row = row + formatListStructure(field);
+                    }
+                }else{
+                    //format an Object on it's own... recursion?
+                    row = row + formatGenericStructure(field);
+                }
+                break;
+            default:
+                row = row + prepareValue(field);
+        }
+        row = row + ",";
+    }
+    
+    //remove extra comma
+    if (row.length !== 0){
+        row = row.slice(0,-1);
+    }
+    
+    return row;
+}
+
+//Should work so long as all object lists contain at least one of its objects :/
+const findColumnHeadingsForStructure = function(jsonObj){
+    var headers = "";
+    var objKeys = Object.keys(jsonObj);
+    for (var k = 0; k < objKeys.length; k++){
+        var field = jsonObj[objKeys[k]];
+    
+        if(field == null){
+            headers = headers + objKeys[k] + ",";
+            continue;
+        }
+    
+        switch(typeof field){
+            case 'object':
+                //Could be an actual object, or an array
+                if (Array.isArray(field)){
+                    //if array has no elements, check in known list keys for headings
+                    if (field.length  == 0){
+                        var knownKeys = Object.keys(knownObjListKeys);
+                        if (knownKeys.indexOf(objKeys[k]) != -1){
+                            var listHeaders = knownObjListKeys[objKeys[k]];
+                            headers = headers + listHeaders[0];
+                            for (var n = 1; n < listHeaders.length; n++){
+                                headers = headers + "," + listHeaders[n];
+                               
+                            }
+                        }else{
+                            //If we don't know this field, assume flat.
+                            headers = headers + objKeys[k]+"_list";
+                        }
+                        break;
+                    }
+                    //list of objects or list of primitives?
+                    if (typeof field[0] == 'object'){
+                        fieldObjKeys = Object.keys(field[0]);
+                        for (var fk = 0; fk < fieldObjKeys.length; fk++){
+                            if (fk !== 0){
+                                headers = headers + ",";
+                            }
+                            headers = headers + objKeys[k]+"_"+fieldObjKeys[fk]+"_list";
+                        }
+                        
+                    }else{
+                        headers = headers + objKeys[k]+"_list";
+                    }
+                }else{
+                    //headers for Object on it's own
+                    fieldObjKeys = Object.keys(field);
+                    for (var fk = 0; fk < fieldObjKeys.length; fk++){
+                        if (fk !== 0){
+                            headers = headers + ",";
+                        }
+                        headers = headers + objKeys[k]+"_"+fieldObjKeys[fk];
+                    }
+                }
+                break;
+            default:
+                headers = headers + objKeys[k];
+        }
+        headers = headers + ",";
+    }
+    //remove extra comma
+    if (headers.length !== 0){
+        headers = headers.slice(0,-1);
+    }
+    
+    return headers;
+}
+
 
 const formatListStructure = function(list){
 	var formattedList = "";
@@ -129,9 +277,9 @@ const formatListStructure = function(list){
 		if (n != 0){
 			formattedList = formattedList + "|";
 		}
-		formattedList = formattedList + formatNonListValue(list[n]);
+		formattedList = formattedList + prepareValue(list[n]);
 	}
-	return escapeCommas(formattedList);
+	return escapeBadCharacters(formattedList);
 }
 
 const formatObjectList = function(objList){
@@ -177,20 +325,18 @@ const formatLocation = function(location){
 	return formattedLocation;
 }
 
-const prepareValue = function(val){
-	return escapeCommas(formatNonListValue(val));
-}
 
-const formatNonListValue = function(val){
+const prepareValue = function(val){
 	if (val == null){
 		return "";
 	}else {
-		return escapePipes(String(val));
+		return escapeBadCharacters(String(val));
 	}
 }
 
-const escapeCommas = function(val){
-	if (val.indexOf(',') !== -1){
+const escapeBadCharacters = function(val){
+	val = val.replace(/\n|\r|\r\n/g, "<br />");
+	if (val.indexOf(',') !== -1 || val.indexOf('|') !== -1 || val.indexOf(';') !== -1){
 		var val2 = val.replace(/"/g, '""');
 		return '"' + val2 + '"';
 	}else{
@@ -198,17 +344,12 @@ const escapeCommas = function(val){
 	}
 }
 
-//Replace occurances of "|" with "\|" as an escape to avoid confusion later.
-const escapePipes = function(val){
-	if (val.indexOf('|') !== -1){
-		return val.replace(/\|/g, "\\|");
-	}
-	return val;
-}
-
 
 module.exports = {
     convertToCSV,
+    generateCSV,
+    formatGenericStructure,
+    findColumnHeadingsForStructure,
     prepareValue,
     formatListStructure,
     formatObjectList
