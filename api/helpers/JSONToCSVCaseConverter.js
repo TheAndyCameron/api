@@ -310,6 +310,8 @@ const escapeBadCharacters = function(val){
 module.exports = {
     convertToCSV,
     generateCSV,
+    formatGenericStructure,
+    findColumnHeadingsForStructure,
     prepareValue,
     formatListStructure,
     formatObjectList

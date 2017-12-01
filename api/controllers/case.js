@@ -14,7 +14,12 @@ const {
   getThingByType_id_lang_userId
 } = require("../helpers/things");
 
-const { convertToCSV, getCSVHeaders } = require("../helpers/JSONToCSVCaseConverter");
+const {
+  convertToCSV,
+  getCSVHeaders,
+  formatGenericStructure,
+  findColumnHeadingsForStructure
+} = require("../helpers/JSONToCSVCaseConverter");
 
 const CASES_BY_COUNTRY = sql("../sql/cases_by_country.sql");
 const CREATE_CASE = sql("../sql/create_case.sql");
@@ -312,12 +317,13 @@ router.get("/all/csv", async function returnAllCSVCases(req, res) {
     var headersSent = false;
 
     ids.forEach(async function(row){
-        if (!headersSent){
-            res.write("Headers\n");
-        }
         req.params.thingid = Number(row.id);
         const caseObj = await getThingByRequest("case", req);
-        res.write("Row: "+ row.id +"\n");
+        if (!headersSent){
+            res.write(findColumnHeadingsForStructure(caseObj)+"\n");
+            headersSent = true;
+        }
+        res.write(formatGenericStructure(caseObj)+"\n");
     });
     res.end();
   } catch (error) {
