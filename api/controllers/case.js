@@ -18,6 +18,7 @@ const { convertToCSV, getCSVHeaders } = require("../helpers/JSONToCSVCaseConvert
 
 const CASES_BY_COUNTRY = sql("../sql/cases_by_country.sql");
 const CREATE_CASE = sql("../sql/create_case.sql");
+const IDS_FOR_TYPE = sql("../sql/ids_for_type.sql");
 
 /**
  * @api {get} /case/countsByCountry Get case counts for each country
@@ -302,3 +303,24 @@ router.get("/csv/:thingid", async function returnCSVCase(req, res) {
   }
 });
 
+router.get("/all/csv", async function returnAllCSVCases(req, res) {
+  try {
+    const thingtype = "case";
+    const ids = await db.any(IDS_FOR_TYPE, { thingtype });
+    //res.setHeader('content-type', 'text/csv');
+    var headersSent = false;
+
+    ids.forEach(async function(row){
+        if (!headersSent){
+            res.write("Headers\n");
+        }
+        req.params.thingid = Number(row.id);
+        const caseObj = await getThingByRequest("case", req);
+        res.write("Row: "+ row.id +"\n");
+    });
+    res.end();
+  } catch (error) {
+    log.error("Exception in GET all CSV case data", req.params.thingid, error);
+    res.status(500).json({ OK: false, error: error });
+  }
+});
