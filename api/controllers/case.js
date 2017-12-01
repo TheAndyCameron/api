@@ -293,13 +293,28 @@ router.delete("/:thingid", function editCaseById(req, res) {
 });
 
 /**
- * //TODO api docs
+ * @api {get} /case/csv/:thingid Get a single case in CSV format
+ * @apiGroup Cases
+ * @apiVersion 0.1.0
+ * @apiName returnCaseCsvById
+ * @apiParam {Number} caseID Case ID
+ *
+ * @apiSuccess {attachment} case.csv Data for the case with this ID
+ *
+ * @apiSuccessExample Success-attachment
+ *     id,type,original_language,...
+ *     3,case,en,...
+ *
+ *
+ * @apiError NotAuthenticated The user is not authenticated
+ * @apiError NotAuthorized The user doesn't have permission to perform this operation.
  *
  */
 router.get("/csv/:thingid", async function returnCSVCase(req, res) {
   try {
     const caseObj = await getThingByRequest("case", req);
     res.setHeader('content-type', 'text/csv');
+    res.setHeader('content-disposition', 'attachment; filename=case.csv');
     res.status(200).send(convertToCSV([caseObj]));
     //res.status(200).json({OK: true, data: JSON.stringify(caseObj)});
   } catch (error) {
@@ -308,7 +323,25 @@ router.get("/csv/:thingid", async function returnCSVCase(req, res) {
   }
 });
 
-
+/**
+ * @api {get} /case/all/csv Get data for all cases in CSV format
+ * @apiGroup Cases
+ * @apiVersion 0.1.0
+ * @apiName returnAllCasesCsv
+ *
+ * @apiSuccess {attachment} allcases.csv Data for all cases in Participedia
+ *
+ * @apiSuccessExample Success-attachment
+ *     id,type,original_language,...
+ *     3,case,en,...
+ *     43,case,en,...
+ *     82,case,en,...
+ *     ...
+ *
+ * @apiError NotAuthenticated The user is not authenticated
+ * @apiError NotAuthorized The user doesn't have permission to perform this operation.
+ *
+ */
 router.get("/all/csv", async function returnAllCSVCases(req, res) {
   try {
     const thingtype = "case";
