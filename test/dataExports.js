@@ -168,6 +168,26 @@ describe('CSV Converter Functions', function(){
             "emptyList":[]
         }
     
+        const objWithEmptyAuthors = {
+            "foo":"single Value",
+            "bar":["list ele 1", "list ele 2", "list ele 3"],
+            "bat":{
+                "bat1":"Value inside object 1",
+                "bat2":"Value inside object 2"
+            },
+            "baz":[
+            {
+                "baz1":"list obj 1 ele 1",
+                "baz2":"list obj 1 ele 2"
+            },
+            {
+                "baz1":"list obj 2 ele 1",
+                "baz2":"list obj 2 ele 2"
+            }
+            ],
+            "authors":[]
+        }
+    
         it('Generate Headers', function(){
             var headers = CSVConverter.findColumnHeadingsForStructure(obj);
             var expected = 'foo,bar_list,bat_bat1,bat_bat2,baz_baz1_list,baz_baz2_list';
@@ -177,6 +197,12 @@ describe('CSV Converter Functions', function(){
         it('Generate Headers with null value fields', function(){
             var headers = CSVConverter.findColumnHeadingsForStructure(objWithBadCharacters);
             var expected = 'foo,bar_list,bat_bat1,bat_bat2,baz_baz1_list,baz_baz2_list,nullVal,emptyList_list';
+            assert.equal(headers, expected);
+        });
+        
+        it('Generate Headers with author list column headers', function(){
+            var headers = CSVConverter.findColumnHeadingsForStructure(objWithEmptyAuthors);
+            var expected = 'foo,bar_list,bat_bat1,bat_bat2,baz_baz1_list,baz_baz2_list,authors_user_id_list,authors_timestamp_list,authors_name_list';
             assert.equal(headers, expected);
         });
     
@@ -189,6 +215,12 @@ describe('CSV Converter Functions', function(){
         it('Generate row in file with escaped characters', function(){
             var dataRow = CSVConverter.formatGenericStructure(objWithBadCharacters);
             var expected = 'single Value,"""list, ele 1""|list ele 2|""list| ele 3""","Value inside, object 1","Value| inside object 2","""list obj 1, ele 1""|""list obj 2| ele 1""","""list obj 1| ele 2""|""list obj 2, ele 2""",,';
+            assert.equal(dataRow, expected);
+        });
+        
+        it('Generate row in file adding in columns for empty author list', function(){
+            var dataRow = CSVConverter.formatGenericStructure(objWithEmptyAuthors);
+            var expected = 'single Value,"list ele 1|list ele 2|list ele 3",Value inside object 1,Value inside object 2,"list obj 1 ele 1|list obj 2 ele 1","list obj 1 ele 2|list obj 2 ele 2",,,';
             assert.equal(dataRow, expected);
         });
     });

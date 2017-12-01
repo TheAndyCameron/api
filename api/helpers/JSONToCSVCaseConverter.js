@@ -1,3 +1,12 @@
+const knownObjListKeys = {
+    "files":["files_url_list","files_title_list","files_size_list"],
+    "authors":["authors_user_id_list","authors_timestamp_list","authors_name_list"]
+    //TODO Related Cases
+    //TODO Related Methods
+    //TODO Related Organizations
+}
+
+
 const convertToCSV = function(caseJSONList){
 	
 	var csvString = getCSVHeaders();
@@ -156,8 +165,15 @@ const formatGenericStructure = function(jsonObj){
             case 'object':
                 //Could be an actual object, or an array
                 if (Array.isArray(field)){
-                    //if array has no elements, do nothing
+                    //if array has no elements, check known list fields for number of fields to skip
+                    //if we don't know the field, assume flat list.
                     if (field.length  == 0){
+                        var knownKeys = Object.keys(knownObjListKeys);
+                        if (knownKeys.indexOf(objKeys[k]) != -1){
+                            for (var n = 0; n < knownObjListKeys[objKeys[k]].length -1; n++){
+                               row = row + ","; 
+                            }
+                        }
                         break;
                     }
                     //list of objects or list of primitives?
@@ -201,9 +217,20 @@ const findColumnHeadingsForStructure = function(jsonObj){
             case 'object':
                 //Could be an actual object, or an array
                 if (Array.isArray(field)){
-                    //if array has no elements, assume normal list??
+                    //if array has no elements, check in known list keys for headings
                     if (field.length  == 0){
-                        headers = headers + objKeys[k]+"_list";
+                        var knownKeys = Object.keys(knownObjListKeys);
+                        if (knownKeys.indexOf(objKeys[k]) != -1){
+                            var listHeaders = knownObjListKeys[objKeys[k]];
+                            headers = headers + listHeaders[0];
+                            for (var n = 1; n < listHeaders.length; n++){
+                                headers = headers + "," + listHeaders[n];
+                               
+                            }
+                        }else{
+                            //If we don't know this field, assume flat.
+                            headers = headers + objKeys[k]+"_list";
+                        }
                         break;
                     }
                     //list of objects or list of primitives?
