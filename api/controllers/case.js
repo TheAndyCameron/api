@@ -318,8 +318,21 @@ router.get("/xml/:thingid", async function returnXMLCase(req, res) {
   }
 });
 
+router.get("/all/xml", async function returnAllXML(req, res) {
+    
+    const uniqID = await db.any(IDS_FOR_TYPE, { thingtype });
+    uniqID.forEach(async function(row) {
+	req.params.thingid = Number(row.id);
+        const caseObj = await getThingsByRequest("case", req);
+        const xmlObj = json2xmlparser.parse("cases", caseObj);
+        res.setHeader('content-type','text/xml');
+        res.set({"Content-Type": "text/xml", "Content-Disposition": "attachment; filename=\"" + allCases + "\".xml"});	    
+	res.write(xmlObj +  "\n");
+	res.end();    
 
+    })
 
+});	    
 
 
 //ids = await db.any(IDS_FOR_TYPE, { thingtype });
