@@ -183,6 +183,69 @@ const returnThingByRequest = async function(type, req, res) {
   }
 };
 
+
+const returnSingleThingByRequest = async function(thingtype, req, res, converterFunction, filterJson){
+    //Get the data, filter the fields and convert to appropriate format
+    var thingJson = await getThingByRequest(thingtype, req);
+    thingJson = filterFields(thingJson, filterJson);
+    var thing = converterFunction(thingJson, true, true);
+    
+    //send data:
+    setHeadersForRes(req, res, thingtype, false);
+    res.status(200).send(thing);
+};
+
+
+const returnAllThingsByRequest = async function(thingtype, req, res, converterFunction, filterJson){
+    try {
+        const ids = await db.any(IDS_FOR_TYPE, { thingtype });
+        setHeadersForRes(req, res, thingtype, true);
+        var counter = 0;
+    
+        ids.forEach(async function(row){
+            req.params.thingid = Number(row.id);
+            var thingJson = await getThingByRequest("case", req);
+            thingJson = filterFields(thingJson, filterJson);
+            var thing;
+            
+            thing = converterFunction(thingJson, counter==0, counter == (ids.length-1));
+            res.write(thing);
+            
+            counter++;
+            if (counter == ids.length){
+                res.end();
+            }
+        });
+    } catch (error) {
+        log.error("Exception in GET all CSV case data", req.params.thingid, error);
+        res.status(500).json({ OK: false, error: error });
+    }
+};
+
+const filterFields = function(obj, filterObj){
+    
+    
+    
+    
+    return obj;
+}
+
+const setHeadersForRes = function(req, res, type, isAll){
+    res.setHeader('content-type', req.get('accept'));
+    
+    //Set attachment file name if xml or csv
+    var filename = type;
+    if(isAll){
+        filename = "all" + type + "s";
+    }
+    
+    if (req.accepts('application/xml')){
+        res.setHeader('content-disposition', 'attachment; filename=' + filename + '.xml');
+    }else if (req.accepts('text/csv')){
+        res.setHeader('content-disposition', 'attachment; filename=' + filename + '.csv');
+    }
+}
+
 function getEditXById(type) {
   return async function editById(req, res) {
     cache.clear();

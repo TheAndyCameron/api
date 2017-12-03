@@ -16,7 +16,7 @@ const {
 
 const {
   convertToCSV,
-  getCSVHeaders,
+  convertObjectToCSV,
   formatGenericStructure,
   findColumnHeadingsForStructure
 } = require("../helpers/JSONToCSVCaseConverter");
@@ -262,7 +262,30 @@ router.put("/:thingid", getEditXById("case"));
 
 // We want to extract the user ID from the auth token if it's there,
 // but not fail if not.
-router.get("/:thingid", (req, res) => returnThingByRequest("case", req, res));
+router.get("/:thingid", function getCaseData(req, res){
+    try{
+        //Determine the converter to use. Normal JSON as default.
+        var converterFunction;
+        if(req.accepts('application/xml')){
+            //converterFunction = convertObjectToXML;  //TODO
+        }else if(req.accepts('text/csv')){
+            converterFunction = convertObjectToCSV;
+        }else{
+            converterFunction = function(thing){return { OK: true, data: thing }};
+        }
+
+        const filterJSON = req.body;
+        
+        if(req.params.thingid == 'all'){
+            returnSingleThingByRequest("case",req,res,converterFunction,filterJSON);
+        }else{
+            returnAllThingsByRequest("case",req,res,converterFunction,filterJSON);
+        }
+    }catch (error){
+        log.error("Exception in GET case data", req.params.thingid, error);
+        res.status(500).json({ OK: false, error: error });
+    }
+});
 
 /**
  * @api {delete} /case/:caseId Delete a case
