@@ -223,9 +223,36 @@ const returnAllThingsByRequest = async function(thingtype, req, res, converterFu
 };
 
 const filterFields = function(obj, filterObj){
+    if(typeof filterObj != 'object'){
+        return obj;
+    }
     
-    
-    
+    const keys = Object.keys(filterObj);
+    for(var k = 0; k < keys.length; k++){
+        switch (typeof obj[keys[k]]){
+            case 'object':
+                //Filter fields in nested object. or for all nested objects in array.
+                if (Array.isArray(obj[keys[k]]){
+                    //if an array of single values, just remove and continue.
+                    if(obj[keys[k]].length != 0 && typeof obj[keys[k]][0] != 'object'){
+                        delete obj[keys[k]];
+                        continue;
+                    }
+                    //array of objects, remove any nested fields that need removing.
+                    for(var i = 0; i < obj[keys[k]].length; i++){
+                        filterFields(obj[keys[k]][i], filterObj[keys[k]]);
+                    }
+                }else{
+                    //single object, remove nested fields that need removing.
+                    filterFields(obj[keys[k]], filterObj[keys[k]]);
+                }
+                break;
+            default:
+                //Single value of key to be filtered out.
+                delete obj[keys[k]];
+        }
+        
+    }
     
     return obj;
 }
