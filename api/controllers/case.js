@@ -3,7 +3,9 @@ const express = require("express");
 const router = express.Router(); // eslint-disable-line new-cap
 const cache = require("apicache");
 const log = require("winston");
+const xml2js = require("xml2js");
 const json2xmlparser = require("js2xmlparser");
+const xmlBuilder = require('xmlbuilder');
 
 const { db, sql, as } = require("../helpers/db");
 
@@ -329,19 +331,51 @@ router.get("/xml/:thingid", async function returnXMLCase(req, res) {
   }
 });
 
+const convertObjToXML = function(jsonObj, first, last) {
+    const xmlObject = json2xmlparser.parse("case", jsonObj);   
+    var head = xmlObject.substr(0, xmlObject.indexOf("\n"));
+    var data = xmlObject.substr(xmlObject.indexOf("\n")+1);
+    var out = "";	
+    if(first) {
+	out = out + head;
+        out = out + "<cases>";	    
+    } 
+
+    out = out + data;
+
+    if(last) {
+        out = out + "</cases>";
+    }
+
+    return out;	
+	
+}
+
+
 router.get("/all/xml", async function returnAllXML(req, res) {
-    
+  try { 
+    const thingtype = "case";  
     const uniqID = await db.any(IDS_FOR_TYPE, { thingtype });
+    res.setHeader('content-type','text/xml');
+    res.set({"Content-Disposition":"attachment; filename=allCases.xml"});
+    var counter = 0; 
+   
     uniqID.forEach(async function(row) {
 	req.params.thingid = Number(row.id);
-        const caseObj = await getThingsByRequest("case", req);
-        const xmlObj = json2xmlparser.parse("cases", caseObj);
-        res.setHeader('content-type','text/xml');
-        res.set({"Content-Type": "text/xml", "Content-Disposition": "attachment; filename=\"" + allCases + "\".xml"});	    
-	res.write(xmlObj +  "\n");
-	res.end();    
+        const caseObj = await getThingByRequest("case", req);
+        const xmlData = convertObjToXML(caseObj, counter==0, counter==uniqID.length -1);  
+	res.write(xmlData);
+	counter++;    
+	if(counter == uniqID.length) {
+	    res.end();
+	}	
 
-    })
+    });
+		
+  } catch(error) {
+    log.error("Exception in GET all XML case data", req.params.thingid, error);
+    res.status(500).json({ OK: false, error: error });
+  }
 
 });
 
