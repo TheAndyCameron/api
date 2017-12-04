@@ -1,5 +1,6 @@
-var assert = require('assert');
-var CSVConverter = require('../api/helpers/JSONToCSVCaseConverter.js');
+const assert = require('assert');
+const CSVConverter = require('../api/helpers/JSONToCSVCaseConverter.js');
+const { filterFields } = require('../api/helpers/things.js');
 
 //Tests for CSV converter
 
@@ -225,3 +226,29 @@ describe('CSV Converter Functions', function(){
         });
     });
 });
+
+
+describe('Filtering function tests', function(){
+    
+    describe('Expected Operation', function(){
+        it('Operation on flat structure, single filter', function(){
+            obj = { a:"A", b:"B", c:"C" };
+            filter = { b:null };
+            
+            expectedObj = { a:"A", c:"C" };
+            assert.equal(filterFields(obj, filter), expectedObj);
+        });
+    });
+    
+});
+
+
+
+
+
+
+
+
+
+
+

@@ -506,6 +506,7 @@ module.exports = {
   returnThingByRequest,
   returnSingleThingByRequest,
   returnAllThingsByRequest,
+  filterFields,
   diffRelatedList,
   difference,
   getEditXById,
