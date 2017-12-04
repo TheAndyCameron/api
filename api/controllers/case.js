@@ -3,6 +3,9 @@ const express = require("express");
 const router = express.Router(); // eslint-disable-line new-cap
 const cache = require("apicache");
 const log = require("winston");
+const xml2js = require("xml2js");
+const json2xmlparser = require("js2xmlparser");
+const xmlBuilder = require('xmlbuilder');
 
 const { db, sql, as } = require("../helpers/db");
 
@@ -317,6 +320,7 @@ router.delete("/:thingid", function editCaseById(req, res) {
   res.status(200).json(req.body);
 });
 
+
 /**
  * @api {get} /case/csv/:thingid Get a single case in CSV format
  * @apiGroup Cases
@@ -335,6 +339,7 @@ router.delete("/:thingid", function editCaseById(req, res) {
  * @apiError NotAuthorized The user doesn't have permission to perform this operation.
  *
  */
+
 router.get("/csv/:thingid", async function returnCSVCase(req, res) {
   try {
     const caseObj = await getThingByRequest("case", req);
@@ -347,6 +352,7 @@ router.get("/csv/:thingid", async function returnCSVCase(req, res) {
     res.status(500).json({ OK: false, error: error});
   }
 });
+
 
 /**
  * @api {get} /case/all/csv Get data for all cases in CSV format
@@ -367,7 +373,7 @@ router.get("/csv/:thingid", async function returnCSVCase(req, res) {
  * @apiError NotAuthorized The user doesn't have permission to perform this operation.
  *
  */
-router.get("/all/csv", async function returnAllCSVCases(req, res) {
+ router.get("/all/csv", async function returnAllCSVCases(req, res) {
   try {
     const thingtype = "case";
     const ids = await db.any(IDS_FOR_TYPE, { thingtype });
@@ -393,6 +399,71 @@ router.get("/all/csv", async function returnAllCSVCases(req, res) {
     log.error("Exception in GET all CSV case data", req.params.thingid, error);
     res.status(500).json({ OK: false, error: error });
   }
+});
+ 
+ 
+router.get("/xml/:thingid", async function returnXMLCase(req, res) {
+  try {
+    const caseObj = await getThingByRequest("case", req);
+    const xmlObj = json2xmlparser.parse("case", caseObj);
+    res.setHeader('content-type','text/xml');
+    res.set({"Content-Type": "text/xml", "Content-Disposition": "attachment; filename=\"" + req.params.thingid + "\".xml"});
+    //res.status(200).send(xmlObj);
+    //res.write("Hello World! This is a test! |");
+    res.write(xmlObj);	  
+    res.end();
+  } catch (error) {
+    log.error("Exception in GET XML case data", req.params.thingid, error);
+    res.status(500).json({ OK: false, error: error});
+  }
+});
+
+const convertObjToXML = function(jsonObj, first, last) {
+    //const xmlObject = json2xmlparser.parse("case", jsonObj, {declaration:{include:false}});
+    const xmlObject = json2xmlparser.parse("case", jsonObj);
+    var head = xmlObject.substr(0, xmlObject.indexOf("\n"));
+    var data = xmlObject.substr(xmlObject.indexOf("\n")+1);
+    var out = "";	
+    if(first) {
+	out = out + head;
+        out = out + "\n" +  "<cases>" + "\n";	    
+    } 
+
+    out = "\t" + out + data + "\n";
+
+    if(last) {
+        out = out + "\n" +  "</cases>";
+    }
+
+    return out;
+	
+}
+
+router.get("/all/xml", async function returnAllXML(req, res) {
+  try { 
+    const thingtype = "case";  
+    const uniqID = await db.any(IDS_FOR_TYPE, { thingtype });
+    res.setHeader('content-type','text/xml');
+    res.set({"Content-Disposition":"attachment; filename=allCases.xml"});
+    var counter = 0; 
+   
+    uniqID.forEach(async function(row) {
+	req.params.thingid = Number(row.id);
+        const caseObj = await getThingByRequest("case", req);
+        const xmlData = convertObjToXML(caseObj, counter==0, counter==uniqID.length -1);  
+	res.write(xmlData);
+	counter++;    
+	if(counter == uniqID.length) {
+	    res.end();
+	}	
+
+    });
+		
+  } catch(error) {
+    log.error("Exception in GET all XML case data", req.params.thingid, error);
+    res.status(500).json({ OK: false, error: error });
+  }
+
 });
 
 module.exports = router;
