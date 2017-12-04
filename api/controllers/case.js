@@ -313,8 +313,6 @@ router.get("/csv/:thingid", async function returnCSVCase(req, res) {
   }
 });
 
-
-
 router.get("/xml/:thingid", async function returnXMLCase(req, res) {
   try {
     const caseObj = await getThingByRequest("case", req);
@@ -332,22 +330,23 @@ router.get("/xml/:thingid", async function returnXMLCase(req, res) {
 });
 
 const convertObjToXML = function(jsonObj, first, last) {
-    const xmlObject = json2xmlparser.parse("case", jsonObj);   
+    //const xmlObject = json2xmlparser.parse("case", jsonObj, {declaration:{include:false}});
+    const xmlObject = json2xmlparser.parse("case", jsonObj);
     var head = xmlObject.substr(0, xmlObject.indexOf("\n"));
     var data = xmlObject.substr(xmlObject.indexOf("\n")+1);
     var out = "";	
     if(first) {
 	out = out + head;
-        out = out + "<cases>";	    
+        out = out + "\n" +  "<cases>" + "\n";	    
     } 
 
-    out = out + data;
+    out = "\t" + out + data + "\n";
 
     if(last) {
-        out = out + "</cases>";
+        out = out + "\n" +  "</cases>";
     }
 
-    return out;	
+    return out;
 	
 }
 
