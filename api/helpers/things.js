@@ -11,6 +11,7 @@ const THING_BY_ID = sql(`../sql/thing_by_id.sql`);
 const INSERT_LOCALIZED_TEXT = sql("../sql/insert_localized_text.sql");
 const UPDATE_NOUN = sql("../sql/update_noun.sql");
 const INSERT_AUTHOR = sql("../sql/insert_author.sql");
+const IDS_FOR_TYPE = sql("../sql/ids_for_type.sql");
 
 // Define the keys we're testing (move these to helper/things.js ?
 const titleKeys = ["id", "title"];
@@ -192,7 +193,12 @@ const returnSingleThingByRequest = async function(thingtype, req, res, converter
     
     //send data:
     setHeadersForRes(req, res, thingtype, false);
-    res.status(200).send(thing);
+    console.log(res.get('content-disposition'));
+    if(typeof thing == 'object'){
+        res.status(200).json(thing);
+    }else{
+        res.status(200).send(thing);
+    }
 };
 
 
@@ -232,7 +238,7 @@ const filterFields = function(obj, filterObj){
         switch (typeof obj[keys[k]]){
             case 'object':
                 //Filter fields in nested object. or for all nested objects in array.
-                if (Array.isArray(obj[keys[k]]){
+                if (Array.isArray(obj[keys[k]])){
                     //if an array of single values, just remove and continue.
                     if(obj[keys[k]].length != 0 && typeof obj[keys[k]][0] != 'object'){
                         delete obj[keys[k]];
@@ -258,17 +264,21 @@ const filterFields = function(obj, filterObj){
 }
 
 const setHeadersForRes = function(req, res, type, isAll){
-    res.setHeader('content-type', req.get('accept'));
-    
     //Set attachment file name if xml or csv
     var filename = type;
     if(isAll){
         filename = "all" + type + "s";
     }
-    
-    if (req.accepts('application/xml')){
+    console.log('HEADERS')
+    if (req.accepts('application/json')){
+        console.log('JSON');
+        res.setHeader('content-type', 'application/json');
+    }else if (req.accepts('application/xml')){
+        console.log('XML');
+        res.setHeader('content-type', 'application/xml');
         res.setHeader('content-disposition', 'attachment; filename=' + filename + '.xml');
     }else if (req.accepts('text/csv')){
+        res.setHeader('content-type', 'text/csv');
         res.setHeader('content-disposition', 'attachment; filename=' + filename + '.csv');
     }
 }
@@ -494,6 +504,8 @@ module.exports = {
   getThingByType_id_lang_userId,
   getThingByRequest,
   returnThingByRequest,
+  returnSingleThingByRequest,
+  returnAllThingsByRequest,
   diffRelatedList,
   difference,
   getEditXById,

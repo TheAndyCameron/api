@@ -10,6 +10,8 @@ const {
   getEditXById,
   addRelatedList,
   returnThingByRequest,
+  returnSingleThingByRequest,
+  returnAllThingsByRequest,
   getThingByRequest,
   getThingByType_id_lang_userId
 } = require("../helpers/things");
@@ -266,17 +268,17 @@ router.get("/:thingid", function getCaseData(req, res){
     try{
         //Determine the converter to use. Normal JSON as default.
         var converterFunction;
-        if(req.accepts('application/xml')){
+        if (req.accepts('application/json')){
+            converterFunction = function(thing, first, last){return { OK: true, data: thing }};
+        }else if(req.accepts('application/xml')){
             //converterFunction = convertObjectToXML;  //TODO
         }else if(req.accepts('text/csv')){
             converterFunction = convertObjectToCSV;
-        }else{
-            converterFunction = function(thing){return { OK: true, data: thing }};
         }
 
         const filterJSON = req.body;
         
-        if(req.params.thingid == 'all'){
+        if(req.params.thingid != 'all'){
             returnSingleThingByRequest("case",req,res,converterFunction,filterJSON);
         }else{
             returnAllThingsByRequest("case",req,res,converterFunction,filterJSON);
