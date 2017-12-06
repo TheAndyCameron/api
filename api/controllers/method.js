@@ -15,6 +15,12 @@ const {
   getThingByType_id_lang_userId
 } = require("../helpers/things");
 
+const {
+  convertObjectToCSV,
+  convertObjectToXML
+} = require("../helpers/data_converters.js");
+
+
 /**
  * @api {post} /method/new Create new method
  * @apiGroup Methods
@@ -131,7 +137,30 @@ router.put("/:thingid", getEditXById("method"));
  *
  */
 
-router.get("/:thingid", (req, res) => returnThingByRequest("method", req, res));
+router.get("/:thingid", function getMethodData(req, res){
+    try{
+        //Determine the converter to use. Normal JSON as default.
+        var converterFunction;
+        if (req.accepts('application/json')){
+            converterFunction = function(thing, first, last, thingtype){return { OK: true, data: thing }};
+        }else if(req.accepts('application/xml')){
+            converterFunction = convertObjectToXML;
+        }else if(req.accepts('text/csv')){
+            converterFunction = convertObjectToCSV;
+        }
+
+        const filterJSON = req.body;
+        
+        if(req.params.thingid != 'all'){
+            returnSingleThingByRequest("method",req,res,converterFunction,filterJSON);
+        }else{
+            returnAllThingsByRequest("method",req,res,converterFunction,filterJSON);
+        }
+    }catch (error){
+        log.error("Exception in GET method data", req.params.thingid, error);
+        res.status(500).json({ OK: false, error: error });
+    }
+});
 
 /**
  * @api {delete} /method/:id Delete a method

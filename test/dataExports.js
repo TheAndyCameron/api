@@ -238,6 +238,14 @@ describe('Filtering function tests', function(){
             expectedObj = { a:"A", c:"C" };
             assert.equal(filterFields(obj, filter), expectedObj);
         });
+        
+        it('Operation on flat structure, single filter', function(){
+            obj = { a:"A", b:"B", c:"C", d:"D" };
+            filter = { b:null, d:null };
+            
+            expectedObj = { a:"A", c:"C" };
+            assert.equal(filterFields(obj, filter), expectedObj);
+        });
     });
     
 });

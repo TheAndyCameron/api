@@ -1,3 +1,6 @@
+"use strict";
+const json2xmlparser = require("js2xmlparser");
+
 const knownObjListKeys = {
     "files":["files_url_list","files_title_list","files_size_list"],
     "authors":["authors_user_id_list","authors_timestamp_list","authors_name_list"]
@@ -25,7 +28,7 @@ const convertToCSV = function(jsonList){
 }
 
 
-const convertObjectToCSV = function(jsonObj, first, last){
+const convertObjectToCSV = function(jsonObj, first, last, thingtype){
     var returnStr = "";
     
     if(first){
@@ -231,6 +234,28 @@ const escapeBadCharacters = function(val){
 }
 
 
+
+const convertObjectToXML = function(jsonObj, first, last, thingtype) {
+    //const xmlObject = json2xmlparser.parse("case", jsonObj, {declaration:{include:false}});
+    const xmlObject = json2xmlparser.parse(thingtype, jsonObj);
+    var head = xmlObject.substr(0, xmlObject.indexOf("\n"));
+    var data = xmlObject.substr(xmlObject.indexOf("\n")+1);
+    var out = "";	
+    if(first) {
+	out = out + head;
+        out = out + "\n" +  "<" + thingtype + "s>" + "\n";	    
+    } 
+
+    out = "\t" + out + data + "\n";
+
+    if(last) {
+        out = out + "\n" +  "</" + thingtype + "s>";
+    }
+
+    return out;
+	
+}
+
 module.exports = {
     convertToCSV,
     convertObjectToCSV,
@@ -238,5 +263,6 @@ module.exports = {
     findColumnHeadingsForStructure,
     prepareValue,
     formatListStructure,
-    formatObjectList
+    formatObjectList,
+    convertObjectToXML
 }

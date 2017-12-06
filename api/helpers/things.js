@@ -186,18 +186,23 @@ const returnThingByRequest = async function(type, req, res) {
 
 
 const returnSingleThingByRequest = async function(thingtype, req, res, converterFunction, filterJson){
-    //Get the data, filter the fields and convert to appropriate format
-    var thingJson = await getThingByRequest(thingtype, req);
-    thingJson = filterFields(thingJson, filterJson);
-    var thing = converterFunction(thingJson, true, true);
-    
-    //send data:
-    setHeadersForRes(req, res, thingtype, false);
-    console.log(res.get('content-disposition'));
-    if(typeof thing == 'object'){
-        res.status(200).json(thing);
-    }else{
-        res.status(200).send(thing);
+    try{
+        //Get the data, filter the fields and convert to appropriate format
+        var thingJson = await getThingByRequest(thingtype, req);
+        thingJson = filterFields(thingJson, filterJson);
+        var thing = converterFunction(thingJson, true, true, thingtype);
+        
+        //send data:
+        setHeadersForRes(req, res, thingtype, false);
+        console.log(res.get('content-disposition'));
+        if(typeof thing == 'object'){
+            res.status(200).json(thing);
+        }else{
+            res.status(200).send(thing);
+        }
+    }catch(error){
+        log.error("Exception in GET single " + thingtype + " data", req.params.thingid, error);
+        res.status(500).json({ OK: false, error: error });
     }
 };
 
@@ -210,11 +215,11 @@ const returnAllThingsByRequest = async function(thingtype, req, res, converterFu
     
         ids.forEach(async function(row){
             req.params.thingid = Number(row.id);
-            var thingJson = await getThingByRequest("case", req);
+            var thingJson = await getThingByRequest(thingtype, req);
             thingJson = filterFields(thingJson, filterJson);
             var thing;
             
-            thing = converterFunction(thingJson, counter==0, counter == (ids.length-1));
+            thing = converterFunction(thingJson, counter==0, counter == (ids.length-1), thingtype);
             res.write(thing);
             
             counter++;
@@ -223,7 +228,7 @@ const returnAllThingsByRequest = async function(thingtype, req, res, converterFu
             }
         });
     } catch (error) {
-        log.error("Exception in GET all CSV case data", req.params.thingid, error);
+        log.error("Exception in GET all " + thingtype + " data", req.params.thingid, error);
         res.status(500).json({ OK: false, error: error });
     }
 };

@@ -16,6 +16,12 @@ const {
   getThingByType_id_lang_userId
 } = require("../helpers/things");
 
+const {
+  convertObjectToCSV,
+  convertObjectToXML
+} = require("../helpers/data_converters.js");
+
+
 /**
  * @api {post} /organization/new Create new organization
  * @apiGroup Organizations
@@ -134,9 +140,30 @@ router.put("/:thingid", getEditXById("organization"));
  *
  */
 
-router.get("/:thingid", (req, res) =>
-  returnThingByRequest("organization", req, res)
-);
+router.get("/:thingid", function getOrganizationData(req, res){
+    try{
+        //Determine the converter to use. Normal JSON as default.
+        var converterFunction;
+        if (req.accepts('application/json')){
+            converterFunction = function(thing, first, last, thingtype){return { OK: true, data: thing }};
+        }else if(req.accepts('application/xml')){
+            converterFunction = convertObjectToXML;
+        }else if(req.accepts('text/csv')){
+            converterFunction = convertObjectToCSV;
+        }
+
+        const filterJSON = req.body;
+        
+        if(req.params.thingid != 'all'){
+            returnSingleThingByRequest("organization",req,res,converterFunction,filterJSON);
+        }else{
+            returnAllThingsByRequest("organization",req,res,converterFunction,filterJSON);
+        }
+    }catch (error){
+        log.error("Exception in GET organization data", req.params.thingid, error);
+        res.status(500).json({ OK: false, error: error });
+    }
+});
 
 /**
  * @api {delete} /organization/:id Delete an organization
