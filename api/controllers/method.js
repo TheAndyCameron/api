@@ -12,7 +12,9 @@ const {
   getEditXById,
   addRelatedList,
   returnThingByRequest,
-  getThingByType_id_lang_userId
+  getThingByType_id_lang_userId,
+  returnSingleThingByRequest,
+  returnAllThingsByRequest
 } = require("../helpers/things");
 
 const {

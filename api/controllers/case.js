@@ -18,7 +18,8 @@ const {
 
 const {
   convertObjectToCSV,
-  convertObjectToXML
+  convertObjectToXML,
+  getAllJSON
 } = require("../helpers/data_converters.js");
 
 const CASES_BY_COUNTRY = sql("../sql/cases_by_country.sql");
@@ -266,7 +267,7 @@ router.get("/:thingid", function getCaseData(req, res){
         //Determine the converter to use. Normal JSON as default.
         var converterFunction;
         if (req.accepts('application/json')){
-            converterFunction = function(thing, first, last, thingtype){return { OK: true, data: thing }};
+            converterFunction = getAllJSON; //function(thing, first, last, thingtype){return { OK: true, data: thing }};
         }else if(req.accepts('application/xml')){
             converterFunction = convertObjectToXML;
         }else if(req.accepts('text/csv')){
@@ -313,6 +314,5 @@ router.delete("/:thingid", function editCaseById(req, res) {
   // let caseBody = req.body;
   res.status(200).json(req.body);
 });
-
 
 module.exports = router;

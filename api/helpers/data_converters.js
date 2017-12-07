@@ -35,7 +35,8 @@ const convertObjectToCSV = function(jsonObj, first, last, thingtype){
         returnStr = returnStr + findColumnHeadingsForStructure(jsonObj) + "\n";
     }
     returnStr = returnStr + formatGenericStructure(jsonObj) + "\n";
-    
+
+    return returnStr;
 }
 
 const formatGenericStructure = function(jsonObj){
@@ -124,7 +125,7 @@ const findColumnHeadingsForStructure = function(jsonObj){
                     }
                     //list of objects or list of primitives?
                     if (typeof field[0] == 'object'){
-                        fieldObjKeys = Object.keys(field[0]);
+                        var fieldObjKeys = Object.keys(field[0]);
                         for (var fk = 0; fk < fieldObjKeys.length; fk++){
                             if (fk !== 0){
                                 headers = headers + ",";
@@ -233,8 +234,6 @@ const escapeBadCharacters = function(val){
 	}
 }
 
-
-
 const convertObjectToXML = function(jsonObj, first, last, thingtype) {
     //const xmlObject = json2xmlparser.parse("case", jsonObj, {declaration:{include:false}});
     const xmlObject = json2xmlparser.parse(thingtype, jsonObj);
@@ -256,6 +255,36 @@ const convertObjectToXML = function(jsonObj, first, last, thingtype) {
 	
 }
 
+const getAllJSON = function(unformatObject, first, last, thingtype) {
+
+    if(first == true && last == true) {
+      var output = {OK: true, data: unformatObject};
+      return JSON.stringify(output);
+    } else {
+      var result = JSON.stringify(unformatObject);
+      //var head = result.substr(0, result.indexOf("\n"));
+      //var output = result.substr(result.indexOf("\n")+1);
+      var output = "";
+
+      if(first) {
+	var head = "{ \"OK\":true," + " \"cases\":" + "[";
+        output = output + head;
+      }
+      //console.log(String(unformatObject.id));
+      output = output + result;
+
+      if(last) {
+        var end = "] }";
+        output = output + end;
+      }else{
+        output = output + ",";
+      }
+    }
+    console.log(output);
+    return output;
+
+}
+
 module.exports = {
     convertToCSV,
     convertObjectToCSV,
@@ -264,5 +293,6 @@ module.exports = {
     prepareValue,
     formatListStructure,
     formatObjectList,
-    convertObjectToXML
+    convertObjectToXML,
+    getAllJSON
 }
