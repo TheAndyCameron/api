@@ -275,7 +275,7 @@ router.get("/:thingid", function getCaseData(req, res){
             converterFunction = convertObjectToCSV;
         }
 
-        const filterJSON = req.body;
+        const filterJSON = JSON.parse(unescape(req.query.filter));
         
         if(req.params.thingid == 'all'){
             returnAllThingsByRequest("case",req,res,converterFunction,filterJSON);
