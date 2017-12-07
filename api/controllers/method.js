@@ -3,6 +3,7 @@ const express = require("express");
 const router = express.Router(); // eslint-disable-line new-cap
 const cache = require("apicache");
 const log = require("winston");
+const template = require("../helpers/template");
 
 const { db, sql, as } = require("../helpers/db");
 
@@ -153,10 +154,12 @@ router.get("/:thingid", function getMethodData(req, res){
 
         const filterJSON = req.body;
         
-        if(req.params.thingid != 'all'){
+        if(req.params.thingid == 'all'){
+             returnAllThingsByRequest("method",req,res,converterFunction,filterJSON);
+        } else if(req.params.thingid == 'fields') {
+	     res.status(200).json(template.methodTemplate);
+	} else{
             returnSingleThingByRequest("method",req,res,converterFunction,filterJSON);
-        }else{
-            returnAllThingsByRequest("method",req,res,converterFunction,filterJSON);
         }
     }catch (error){
         log.error("Exception in GET method data", req.params.thingid, error);

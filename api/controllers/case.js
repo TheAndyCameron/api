@@ -3,6 +3,7 @@ const express = require("express");
 const router = express.Router(); // eslint-disable-line new-cap
 const cache = require("apicache");
 const log = require("winston");
+const template = require("../helpers/template");
 
 const { db, sql, as } = require("../helpers/db");
 
@@ -276,10 +277,16 @@ router.get("/:thingid", function getCaseData(req, res){
 
         const filterJSON = req.body;
         
-        if(req.params.thingid != 'all'){
-            returnSingleThingByRequest("case",req,res,converterFunction,filterJSON);
-        }else{
+        if(req.params.thingid == 'all'){
             returnAllThingsByRequest("case",req,res,converterFunction,filterJSON);
+        } else if(req.params.thingid == 'fields') {
+ 	   const rawfields = template.caseTemplate;
+    	   //console.log(typeof(rawfields));
+	   //console.log(JSON.stringify(rawfields));
+           res.status(200).json(rawfields);
+ 
+        } else {
+            returnSingleThingByRequest("case",req,res,converterFunction,filterJSON);
         }
     }catch (error){
         log.error("Exception in GET case data", req.params.thingid, error);
@@ -314,5 +321,15 @@ router.delete("/:thingid", function editCaseById(req, res) {
   // let caseBody = req.body;
   res.status(200).json(req.body);
 });
+
+// return the fields to UI
+/*router.get("/fields", function(req,res) {
+
+    const rawfields = template.caseFields;
+    console.log(typeof(rawfields));
+    console.log(JSON.stringify(rawfields));
+
+});*/
+
 
 module.exports = router;

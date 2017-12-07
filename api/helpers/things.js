@@ -501,6 +501,13 @@ function getEditXById(type) {
   };
 }
 
+const getAllFields = async function(req, res) {
+    
+
+
+}
+
+
 const supportedTypes = ["case", "method", "organization"];
 
 module.exports = {
