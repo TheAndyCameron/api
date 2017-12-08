@@ -152,8 +152,11 @@ router.get("/:thingid", function getMethodData(req, res){
             converterFunction = convertObjectToCSV;
         }
 
-       // const filterJSON = JSON.parse(unescape(req.query.filter));
-        const filterJSON = req.body;
+        //Only filter if an object is provided.
+        var filterJSON = {};
+        if(typeof req.query.filter == 'string' && req.query.filter != ''){
+            filterJSON = JSON.parse(unescape(req.query.filter));
+        }
 
         if(req.params.thingid == 'all'){
              returnAllThingsByRequest("method",req,res,converterFunction,filterJSON);

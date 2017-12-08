@@ -275,16 +275,19 @@ router.get("/:thingid", function getCaseData(req, res){
             converterFunction = convertObjectToCSV;
         }
 
-       // const filterJSON = JSON.parse(unescape(req.query.filter));
-        const filterJSON = req.body;
+        //Only filter if an object is provided.
+        var filterJSON = {};
+        if(typeof req.query.filter == 'string' && req.query.filter != ''){
+            filterJSON = JSON.parse(unescape(req.query.filter));
+        }
+
+        //const filterJSON = req.body;
 
         if(req.params.thingid == 'all'){
             returnAllThingsByRequest("case",req,res,converterFunction,filterJSON);
         } else if(req.params.thingid == 'fields') {
- 	   const rawfields = template.caseTemplate;
-    	   //console.log(typeof(rawfields));
-	   //console.log(JSON.stringify(rawfields));
-           res.status(200).json(rawfields);
+ 	        const rawfields = template.caseTemplate;
+            res.status(200).json(rawfields);
  
         } else {
             returnSingleThingByRequest("case",req,res,converterFunction,filterJSON);
