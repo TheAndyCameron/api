@@ -19,11 +19,6 @@ const {
   returnAllThingsByRequest
 } = require("../helpers/things");
 
-const {
-  convertObjectToCSV,
-  convertObjectToXML
-} = require("../helpers/data_converters.js");
-
 
 /**
  * @api {post} /organization/new Create new organization
@@ -145,28 +140,12 @@ router.put("/:thingid", getEditXById("organization"));
 
 router.get("/:thingid", function getOrganizationData(req, res){
     try{
-        //Determine the converter to use. Normal JSON as default.
-        var converterFunction;
-        if (req.accepts('application/json')){
-            converterFunction = function(thing, first, last, thingtype){return { OK: true, data: thing }};
-        }else if(req.accepts('application/xml')){
-            converterFunction = convertObjectToXML;
-        }else if(req.accepts('text/csv')){
-            converterFunction = convertObjectToCSV;
-        }
-
-        //Only filter if an object is provided.
-        var filterJSON = {};
-        if(typeof req.query.filter == 'string' && req.query.filter != ''){
-            filterJSON = JSON.parse(unescape(req.query.filter));
-        }
-
         if(req.params.thingid == 'all'){
-            returnAllThingsByRequest("organization",req,res,converterFunction,filterJSON); 
+            returnAllThingsByRequest("organization",req,res); 
         } else if(req.params.thingid == 'fields') {
 	    res.status(200).json(template.organizationTemplate);
 	} else{
-	    returnSingleThingByRequest("organization",req,res,converterFunction,filterJSON)
+	    returnSingleThingByRequest("organization",req,res)
            
         }
     }catch (error){

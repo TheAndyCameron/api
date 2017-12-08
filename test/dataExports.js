@@ -1,5 +1,5 @@
 const assert = require('assert');
-const CSVConverter = require('../api/helpers/JSONToCSVCaseConverter.js');
+const CSVConverter = require('../api/helpers/data_converters.js');
 const { filterFields } = require('../api/helpers/things.js');
 
 //Tests for CSV converter
@@ -228,24 +228,90 @@ describe('CSV Converter Functions', function(){
 });
 
 
-describe('Filtering function tests', function(){
+describe('Filtering function tests:', function(){
     
     describe('Expected Operation', function(){
-        it('Operation on flat structure, single filter', function(){
-            obj = { a:"A", b:"B", c:"C" };
-            filter = { b:null };
+
+        describe('on flat structure', function(){
+            it('with single filter', function(){
+                obj = { a:"A", b:"B", c:"C", d:"D"};
+                filter = { b:null };
+                
+                expectedObj = { a:"A", c:"C", d:"D" };
+                assert.equal(JSON.stringify(filterFields(obj, filter)), JSON.stringify(expectedObj));
+            }); 
             
-            expectedObj = { a:"A", c:"C" };
-            assert.equal(filterFields(obj, filter), expectedObj);
+            it('with multiple filter', function(){
+                obj = { a:"A", b:"B", c:"C", d:"D" };
+                filter = { b:null, d:null };
+                
+                expectedObj = { a:"A", c:"C" };
+                assert.equal(JSON.stringify(filterFields(obj, filter)), JSON.stringify(expectedObj));
+            });
         });
         
-        it('Operation on flat structure, single filter', function(){
-            obj = { a:"A", b:"B", c:"C", d:"D" };
-            filter = { b:null, d:null };
-            
-            expectedObj = { a:"A", c:"C" };
-            assert.equal(filterFields(obj, filter), expectedObj);
+        describe('on fields in an object', function(){
+            it('with single filter', function(){
+                obj = { a:"A", b:{ c:"C", d:"D" } };
+                filter = { b:{d:null} };
+                
+                expectedObj = { a:"A", b:{ c:"C" } };
+                assert.equal(JSON.stringify(filterFields(obj, filter)), JSON.stringify(expectedObj));
+            });
+
+            it('with multiple filter', function(){
+                obj = { a:"A", b:{ c:"C", d:"D", e:"E" } };
+                filter = { b:{ c:"C", d:"D" } };
+                
+                expectedObj = { a:"A", b:{ e:"E" } };
+                assert.equal(JSON.stringify(filterFields(obj, filter)), JSON.stringify(expectedObj));
+            });
+
+            it('with removing the object', function(){
+                obj = { a:"A", b:{ c:"C", d:"D" } };
+                filter = { b:null };
+                
+                expectedObj = { a:"A" };
+                assert.equal(JSON.stringify(filterFields(obj, filter)), JSON.stringify(expectedObj));
+            });
         });
+
+        describe('on list fields', function(){
+            it('with single filter', function(){
+                obj = { a:"A", b:["B", "BE", "BEE"] };
+                filter = { b:null };
+                
+                expectedObj = { a:"A" };
+                assert.equal(JSON.stringify(filterFields(obj, filter)), JSON.stringify(expectedObj));
+            });
+        });
+
+        describe('on fields in an object list', function(){
+            it('with single filter', function(){
+                obj = { a:"A", b:[{ c:"C", d:"D" }, { c:"C", d:"D" }] };
+                filter = { b:{d:null} };
+                
+                expectedObj = { a:"A", b:[{ c:"C" }, { c:"C" }] };
+                assert.equal(JSON.stringify(filterFields(obj, filter)), JSON.stringify(expectedObj));
+            });
+
+            it('with multiple filter', function(){
+                obj = { a:"A", b:[{ c:"C", d:"D", e:"E" }, { c:"C", d:"D", e:"E" }] };
+                filter = { b:{ c:"C", d:"D" } };
+                
+                expectedObj = { a:"A", b:[{ e:"E" }, { e:"E" }] };
+                assert.equal(JSON.stringify(filterFields(obj, filter)), JSON.stringify(expectedObj));
+            });
+
+            it('with removing the list', function(){
+                obj = { a:"A", b:[{ c:"C", d:"D" }, { c:"C", d:"D" }] };
+                filter = { b:null };
+                
+                expectedObj = { a:"A" };
+                assert.equal(JSON.stringify(filterFields(obj, filter)), JSON.stringify(expectedObj));
+            });
+        });
+        
     });
     
 });

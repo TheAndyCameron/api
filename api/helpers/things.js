@@ -7,6 +7,12 @@ const moment = require("moment");
 const { okToFlipFeatured } = require("./user");
 const { as, db, sql } = require("./db");
 
+const {
+  convertObjectToCSV,
+  convertObjectToXML,
+  getAllJSON
+} = require("./data_converters.js");
+
 const THING_BY_ID = sql(`../sql/thing_by_id.sql`);
 const INSERT_LOCALIZED_TEXT = sql("../sql/insert_localized_text.sql");
 const UPDATE_NOUN = sql("../sql/update_noun.sql");
@@ -185,8 +191,12 @@ const returnThingByRequest = async function(type, req, res) {
 };
 
 
-const returnSingleThingByRequest = async function(thingtype, req, res, converterFunction, filterJson){
+const returnSingleThingByRequest = async function(thingtype, req, res){
     try{
+        const interpretedParams = getParameters(req);
+        const converterFunction = interpretedParams[0];
+        const filterJson = interpretedParams[1];
+
         //Get the data, filter the fields and convert to appropriate format
         var thingJson = await getThingByRequest(thingtype, req);
         thingJson = filterFields(thingJson, filterJson);
@@ -207,8 +217,12 @@ const returnSingleThingByRequest = async function(thingtype, req, res, converter
 };
 
 
-const returnAllThingsByRequest = async function(thingtype, req, res, converterFunction, filterJson){
+const returnAllThingsByRequest = async function(thingtype, req, res){
     try {
+        const interpretedParams = getParameters(req);
+        const converterFunction = interpretedParams[0];
+        const filterJson = interpretedParams[1];
+
         const ids = await db.any(IDS_FOR_TYPE, { thingtype });
         setHeadersForRes(req, res, thingtype, true);
         var counter = 0;
@@ -232,6 +246,26 @@ const returnAllThingsByRequest = async function(thingtype, req, res, converterFu
         res.status(500).json({ OK: false, error: error });
     }
 };
+
+const getParameters = function(req){
+    //Determine the converter to use. Normal JSON as default.
+    var converterFunction;
+    if (req.accepts('application/json')){
+        converterFunction = getAllJSON; //function(thing, first, last, thingtype){return { OK: true, data: thing }};
+    }else if(req.accepts('application/xml')){
+        converterFunction = convertObjectToXML;
+    }else if(req.accepts('text/csv')){
+        converterFunction = convertObjectToCSV;
+    }
+
+    //Only filter if an object is provided.
+    var filterJSON = {};
+    if(typeof req.query.filter == 'string' && req.query.filter != ''){
+        filterJSON = JSON.parse(unescape(req.query.filter));
+    }
+
+    return [converterFunction, filterJSON];
+}
 
 const filterFields = function(obj, filterObj){
     if(typeof filterObj != 'object' || filterObj == null){

@@ -17,12 +17,6 @@ const {
   getThingByType_id_lang_userId
 } = require("../helpers/things");
 
-const {
-  convertObjectToCSV,
-  convertObjectToXML,
-  getAllJSON
-} = require("../helpers/data_converters.js");
-
 const CASES_BY_COUNTRY = sql("../sql/cases_by_country.sql");
 const CREATE_CASE = sql("../sql/create_case.sql");
 
@@ -265,32 +259,14 @@ router.put("/:thingid", getEditXById("case"));
 // but not fail if not.
 router.get("/:thingid", function getCaseData(req, res){
     try{
-        //Determine the converter to use. Normal JSON as default.
-        var converterFunction;
-        if (req.accepts('application/json')){
-            converterFunction = getAllJSON; //function(thing, first, last, thingtype){return { OK: true, data: thing }};
-        }else if(req.accepts('application/xml')){
-            converterFunction = convertObjectToXML;
-        }else if(req.accepts('text/csv')){
-            converterFunction = convertObjectToCSV;
-        }
-
-        //Only filter if an object is provided.
-        var filterJSON = {};
-        if(typeof req.query.filter == 'string' && req.query.filter != ''){
-            filterJSON = JSON.parse(unescape(req.query.filter));
-        }
-
-        //const filterJSON = req.body;
-
         if(req.params.thingid == 'all'){
-            returnAllThingsByRequest("case",req,res,converterFunction,filterJSON);
+            returnAllThingsByRequest("case",req,res);
         } else if(req.params.thingid == 'fields') {
  	        const rawfields = template.caseTemplate;
             res.status(200).json(rawfields);
  
         } else {
-            returnSingleThingByRequest("case",req,res,converterFunction,filterJSON);
+            returnSingleThingByRequest("case",req,res);
         }
     }catch (error){
         log.error("Exception in GET case data", req.params.thingid, error);
@@ -325,15 +301,6 @@ router.delete("/:thingid", function editCaseById(req, res) {
   // let caseBody = req.body;
   res.status(200).json(req.body);
 });
-
-// return the fields to UI
-/*router.get("/fields", function(req,res) {
-
-    const rawfields = template.caseFields;
-    console.log(typeof(rawfields));
-    console.log(JSON.stringify(rawfields));
-
-});*/
 
 
 module.exports = router;
