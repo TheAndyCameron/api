@@ -234,12 +234,16 @@ const returnAllThingsByRequest = async function(thingtype, req, res, converterFu
 };
 
 const filterFields = function(obj, filterObj){
-    if(typeof filterObj != 'object'){
+    if(typeof filterObj != 'object' || filterObj == null){
         return obj;
     }
     
     const keys = Object.keys(filterObj);
     for(var k = 0; k < keys.length; k++){
+        //if null, remove entire object
+        if(filterObj[keys[k]] == null){
+            delete obj[keys[k]];
+        }
         switch (typeof obj[keys[k]]){
             case 'object':
                 //Filter fields in nested object. or for all nested objects in array.
