@@ -313,6 +313,56 @@ describe('Filtering function tests:', function(){
         });
         
     });
+
+    describe('Unexpected inputs', function(){
+        it('filtering unused fields', function(){
+                obj = { a:"A", b:"B", c:"C" };
+                filter = { d:null };
+                
+                expectedObj = { a:"A", b:"B", c:"C" };
+                assert.equal(JSON.stringify(filterFields(obj, filter)), JSON.stringify(expectedObj));
+        });
+
+        it('filtering used and unused fields', function(){
+                obj = { a:"A", b:"B", c:"C" };
+                filter = { a:null, d:null };
+                
+                expectedObj = { b:"B", c:"C" };
+                assert.equal(JSON.stringify(filterFields(obj, filter)), JSON.stringify(expectedObj));
+        });
+
+        it('filtering fields out of order', function(){
+                obj = { a:"A", b:"B", c:"C" };
+                filter = { c:null, a:null };
+                
+                expectedObj = { b:"B" };
+                assert.equal(JSON.stringify(filterFields(obj, filter)), JSON.stringify(expectedObj));
+        });
+
+        it('filtering with an empty filter', function(){
+                obj = { a:"A", b:"B", c:"C" };
+                filter = {};
+                
+                expectedObj = { a:"A", b:"B", c:"C" };
+                assert.equal(JSON.stringify(filterFields(obj, filter)), JSON.stringify(expectedObj));
+        });
+
+        it('filtering with an empty object', function(){
+                obj = {};
+                filter = { a:null };
+                
+                expectedObj = {};
+                assert.equal(JSON.stringify(filterFields(obj, filter)), JSON.stringify(expectedObj));
+        });
+
+        it('attempting to filter fields of a field', function(){
+                obj = { a:"A" };
+                filter = { a:{b:"B"} };
+                
+                expectedObj = { };
+                assert.equal(JSON.stringify(filterFields(obj, filter)), JSON.stringify(expectedObj));
+        });
+    });
     
 });
 
