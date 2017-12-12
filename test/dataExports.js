@@ -397,6 +397,37 @@ describe('XML TESTS', function(){
 
 
 
+//Live testing:
+let tokens = require("./setupenv");
+let app = require("../app");
+let chai = require("chai");
+let chaiHttp = require("chai-http");
+let chaiHelpers = require("./helpers");
+let should = chai.should();
+let expect = chai.expect;
+chai.should();
+chai.use(chaiHttp);
+chai.use(chaiHelpers);
+
+describe('Case Data', () => {
+    describe('Single, unfiltered', () => {
+        it('should get one case successfully', async () => {
+            const res = await chai.getJSON("/case/1").send({});
+            res.should.have.status(200);
+            //rest of content tested elsewhere, just checking that it works here.
+        });
+        
+        it('should get one case is CSV format', async () => {
+            const res = await chai.request('http://localhost:3001').get("/case/1").set('accepts','text/csv').send({});
+            console.log(res.body);
+        });
+            
+
+
+    });
+
+});
+
 
 
 
