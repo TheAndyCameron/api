@@ -190,7 +190,9 @@ const returnThingByRequest = async function(type, req, res) {
   }
 };
 
-
+/* Used to return a single thing to the requester, including processes of retrieval, 
+ * field filtering, conversion, and sending. 
+ */
 const returnSingleThingByRequest = async function(thingtype, req, res){
     try{
         const interpretedParams = getParameters(req);
@@ -204,7 +206,6 @@ const returnSingleThingByRequest = async function(thingtype, req, res){
         
         //send data:
         setHeadersForRes(req, res, thingtype, false);
-        console.log(res.get('content-disposition'));
         if(typeof thing == 'object'){
             res.status(200).json(thing);
         }else{
@@ -216,7 +217,9 @@ const returnSingleThingByRequest = async function(thingtype, req, res){
     }
 };
 
-
+/* Used to return all things of a particular type to the requester, including processes  
+ * of retrieval, field filtering, conversion, and sending. 
+ */
 const returnAllThingsByRequest = async function(thingtype, req, res){
     try {
         const interpretedParams = getParameters(req);
@@ -267,6 +270,8 @@ const getParameters = function(req){
     return [converterFunction, filterJSON];
 }
 
+/* Removes all (nested) keys of filterObj from obj.
+ */
 const filterFields = function(obj, filterObj){
     if(typeof filterObj != 'object' || filterObj == null){
         return obj;
@@ -306,18 +311,17 @@ const filterFields = function(obj, filterObj){
     return obj;
 }
 
+/* Sets the res headers for content-type and the attachment file name.
+ */
 const setHeadersForRes = function(req, res, type, isAll){
     //Set attachment file name if xml or csv
     var filename = type;
     if(isAll){
         filename = "all" + type + "s";
     }
-    console.log('HEADERS')
     if (req.accepts('application/json')){
-        console.log('JSON');
         res.setHeader('content-type', 'application/json');
     }else if (req.accepts('application/xml')){
-        console.log('XML');
         res.setHeader('content-type', 'application/xml');
         res.setHeader('content-disposition', 'attachment; filename=' + filename + '.xml');
     }else if (req.accepts('text/csv')){

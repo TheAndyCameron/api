@@ -9,46 +9,46 @@ describe('CSV Converter Functions', function(){
     describe('Prepare Value function.', function(){
         it('Should return string unchanged.', function(){
             var strVal = "Hello this is a test.";
-            assert.equal(strVal, CSVConverter.prepareValue(strVal));
+            assert.equal(CSVConverter.prepareValue(strVal), strVal);
         });
         
         it('Should return numerical values as a string version of the value.', function(){
             var intVal = 43;
-            assert.equal(String(intVal), CSVConverter.prepareValue(intVal));
+            assert.equal(CSVConverter.prepareValue(intVal), String(intVal));
         });
         
         it('Should return negative numerical values as a string version of the value.', function(){
             var intVal = -84;
-            assert.equal(String(intVal), CSVConverter.prepareValue(intVal));
+            assert.equal(CSVConverter.prepareValue(intVal), String(intVal));
         });
         
         it('Should return boolean values as a string version of the value.', function(){
             var boolVal = true;
-            assert.equal(String(boolVal), CSVConverter.prepareValue(boolVal));
+            assert.equal(CSVConverter.prepareValue(boolVal), String(boolVal));
         });
         
         it('Should return empty string for null value.', function(){
             let nullVal;
-            assert.equal("", CSVConverter.prepareValue(nullVal));
+            assert.equal(CSVConverter.prepareValue(nullVal), "");
         });
         
         it('Comma character should be escaped', function(){
             var strWithComma = "Oh no, I dislike tests.";
             var strWithEscapedComma = "\"Oh no, I dislike tests.\"";    //Excel friendly (Assumed best based on use cases?)
             //var strWithEscapedComma = "Oh no\, I dislike tests.";     //Unix friendly
-            assert.equal(strWithEscapedComma, CSVConverter.prepareValue(strWithComma));
+            assert.equal(CSVConverter.prepareValue(strWithComma), strWithEscapedComma);
         });
 
 	    it('Comma character should be escaped and escape double quotes that should be kept.', function(){
             var strWithComma = '"Oh no, I dislike tests," she said.';
             var strWithEscapedComma = '"""Oh no, I dislike tests,"" she said."';    //Excel friendly (Assumed best based on use cases?)
-            assert.equal(strWithEscapedComma, CSVConverter.prepareValue(strWithComma));
+            assert.equal(CSVConverter.prepareValue(strWithComma), strWithEscapedComma);
         });
         
         it('Pipe character should be escaped', function(){
             var strWithPipe = "Look at my pipe | I like it";
             var strWithEscapedPipe = '"Look at my pipe | I like it"';
-            assert.equal(strWithEscapedPipe, CSVConverter.prepareValue(strWithPipe));
+            assert.equal(CSVConverter.prepareValue(strWithPipe), strWithEscapedPipe);
         });
     });
     
@@ -56,31 +56,31 @@ describe('CSV Converter Functions', function(){
         it('Should give a single string with list elements separated by pipe characters (|)', function(){
             var list = ["ABC","DEF","GHI"];
             var expectedStr = '"ABC|DEF|GHI"';
-            assert.equal(expectedStr, CSVConverter.formatListStructure(list));
+            assert.equal(CSVConverter.formatListStructure(list), expectedStr);
         });
         
         it('Should give a single string with numerical list elements separated by pipe characters (|)', function(){
             var list = [42,256,1048576];
             var expectedStr = '"42|256|1048576"';
-            assert.equal(expectedStr, CSVConverter.formatListStructure(list));
+            assert.equal(CSVConverter.formatListStructure(list), expectedStr);
         });
         
         it('Should give an empty string for an empty list', function(){
             var list = [];
             var expectedStr = "";
-            assert.equal(expectedStr, CSVConverter.formatListStructure(list));
+            assert.equal(CSVConverter.formatListStructure(list), expectedStr);
         });
         
         it('Should give an empty string in place of a null value in a list', function(){
             var list = ["First", null, "last"];
             var expectedStr = '"First||last"';
-            assert.equal(expectedStr, CSVConverter.formatListStructure(list));
+            assert.equal(CSVConverter.formatListStructure(list), expectedStr);
         });
         
         it('Should escape any pipe characters pre-existing in the list.', function(){
             var list = ["First", "Last|More Last"];
             var expectedStr = '"First|""Last|More Last"""';
-            assert.equal(expectedStr, CSVConverter.formatListStructure(list));
+            assert.equal(CSVConverter.formatListStructure(list), expectedStr);
         });
     });
     
@@ -88,43 +88,43 @@ describe('CSV Converter Functions', function(){
         it('Should separate fields into individual consecutive lists.', function(){
             var objList = [{a:"Hello", b:"There", c:"You!"}, {a:"Goodbye", b:"There", c:"Jim"}];
             var expectedStr = '"Hello|Goodbye","There|There","You!|Jim"';
-            assert.equal(expectedStr, CSVConverter.formatObjectList(objList));
+            assert.equal(CSVConverter.formatObjectList(objList), expectedStr);
         });
 
         it('Should work with numerical values.', function(){
             var objList = [{a:1, b:2, c:3}, {a:4, b:5, c:6}];
             var expectedStr = '"1|4","2|5","3|6"';
-            assert.equal(expectedStr, CSVConverter.formatObjectList(objList));
+            assert.equal(CSVConverter.formatObjectList(objList), expectedStr);
         });
 
         it('Should work with null values', function(){
             var objList = [{a:null, b:null, c:null}, {a:null, b:null, c:null}];
             var expectedStr = '"|","|","|"';
-            assert.equal(expectedStr, CSVConverter.formatObjectList(objList));
+            assert.equal(CSVConverter.formatObjectList(objList), expectedStr);
         });
 
         it('Should work with a mix of types', function(){
             var objList = [{a:"Hello", b:3, c:true}, {a:null, b:-42, c:false}];
             var expectedStr = '"Hello|","3|-42","true|false"';
-            assert.equal(expectedStr, CSVConverter.formatObjectList(objList));
+            assert.equal(CSVConverter.formatObjectList(objList), expectedStr);
         });
 
         it('Should escape any comma characters, without affecting surrounding columns', function(){
             var objList = [{a:"Hello", b:3, c:"Words"}, {a:"Goodbye", b:-42, c:"and, More Words"}];
             var expectedStr = '"Hello|Goodbye","3|-42","Words|""and, More Words"""';
-            assert.equal(expectedStr, CSVConverter.formatObjectList(objList));
+            assert.equal(CSVConverter.formatObjectList(objList), expectedStr);
         });
 
         it('Should escape Pipe charcters', function(){
             var objList = [{a:"Hello|Greetings", b:3, c:true}, {a:"Goodbye|Cya later", b:-42, c:false}];
             var expectedStr = '"""Hello|Greetings""|""Goodbye|Cya later""","3|-42","true|false"';
-            assert.equal(expectedStr, CSVConverter.formatObjectList(objList));
+            assert.equal(CSVConverter.formatObjectList(objList), expectedStr);
         });
 
         it('Should escape a combination of commas and pipe characters', function(){
             var objList = [{a:"Hello", b:"A, B, and C", c:"Apples|Oranges"}, {a:"Goodbye|Cya", b:"DEF", c:"Melons, and Bananas"}];
             var expectedStr = '"Hello|""Goodbye|Cya""","""A, B, and C""|DEF","""Apples|Oranges""|""Melons, and Bananas"""';
-            assert.equal(expectedStr, CSVConverter.formatObjectList(objList));
+            assert.equal(CSVConverter.formatObjectList(objList), expectedStr);
         });
     });
     
