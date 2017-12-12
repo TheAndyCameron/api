@@ -84,7 +84,10 @@ const methodTemplate =
 		"postal_code":null,
 		"latitude":null,
 		"longitude":null},
-	"files":null,
+	"files":
+        {"url": null,
+		"title": null,
+		"size": null},
 	"tags":null,
 	"featured":null,
 	"best_for":null,
@@ -136,7 +139,10 @@ const organizationTemplate =
 		"postal_code":null,
 		"latitude": null,
 		"longitude": null},
-	"files":null,
+	"files":
+        {"url": null,
+		"title": null,
+		"size": null},
 	"tags":null,
 	"featured":null,
 	"executive_director":null,
