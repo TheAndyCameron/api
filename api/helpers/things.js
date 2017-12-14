@@ -322,10 +322,10 @@ const setHeadersForRes = function(req, res, type, isAll){
     if (req.accepts('application/json')){
         res.setHeader('content-type', 'application/json');
     }else if (req.accepts('application/xml')){
-        res.setHeader('content-type', 'application/xml');
+        res.setHeader('content-type', 'application/xml; charset=utf-8');
         res.setHeader('content-disposition', 'attachment; filename=' + filename + '.xml');
     }else if (req.accepts('text/csv')){
-        res.setHeader('content-type', 'text/csv');
+        res.setHeader('content-type', 'text/csv; charset=utf-8');
         res.setHeader('content-disposition', 'attachment; filename=' + filename + '.csv');
     }
 }

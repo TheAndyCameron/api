@@ -267,10 +267,9 @@ const getAllJSON = function(unformatObject, first, last, thingtype) {
       var output = "";
 
       if(first) {
-	var head = "{ \"OK\":true," + " \"cases\":" + "[";
+	    var head = "{ \"OK\":true," + " \"data\":" + "[";
         output = output + head;
       }
-      //console.log(String(unformatObject.id));
       output = output + result;
 
       if(last) {
@@ -280,7 +279,6 @@ const getAllJSON = function(unformatObject, first, last, thingtype) {
         output = output + ",";
       }
     }
-    console.log(output);
     return output;
 
 }

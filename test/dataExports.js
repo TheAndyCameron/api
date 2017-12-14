@@ -1,6 +1,7 @@
 const assert = require('assert');
 const CSVConverter = require('../api/helpers/data_converters.js');
 const { filterFields } = require('../api/helpers/things.js');
+const templates = require('../api/helpers/template.js');
 
 //Tests for CSV converter
 
@@ -414,20 +415,415 @@ describe('Case Data', () => {
         it('should get one case successfully', async () => {
             const res = await chai.getJSON("/case/1").send({});
             res.should.have.status(200);
+            res.body.data.id.should.equal(1);
             //rest of content tested elsewhere, just checking that it works here.
         });
         
-        it('should get one case is CSV format', async () => {
-            const res = await chai.request('http://localhost:3001').get("/case/1").set('accepts','text/csv').send({});
-            console.log(res.body);
+        it('should get one case in CSV format', async () => {
+            const res = await chai.request(app).get("/case/1").set('accept','text/csv').send({});
+            res.should.have.status(200);
+            expect(res).to.have.header('content-type','text/csv; charset=utf-8');
+            expect(res).to.have.header('content-disposition','attachment; filename=case.csv');
+            //Probably should add a md5 checksum or something
         });
             
+        it('should get one case in XML format', async () => {
+            const res = await chai.request(app).get("/case/1").set('accept','application/xml').send({});
+            res.should.have.status(200);
+            expect(res).to.have.header('content-type','application/xml; charset=utf-8');
+            expect(res).to.have.header('content-disposition','attachment; filename=case.xml');
+            //Probably should add a md5 checksum or something
+        });
 
+    });
 
+    describe('Single, filtered', () => {
+        const filter1 = "{%22id%22%3Anull}"
+        const filter2 = "{%22type%22%3Anull%2C%22location%22%3A{%22latitude%22%3Anull}}"
+
+        it('should get one case with id filtered out', async () => {
+            const res = await chai.getJSON("/case/1?filter="+filter1).send({});
+            res.should.have.status(200);
+            (typeof res.body.data.id).should.equal('undefined');
+            res.body.data.type.should.equal('case');
+        });
+        
+        it('should get one case with type and latitude filtered out', async () => {
+            const res = await chai.getJSON("/case/1?filter="+filter2).send({});
+            res.should.have.status(200);
+            (typeof res.body.data.type).should.equal('undefined');
+            (typeof res.body.data.location.latitude).should.equal('undefined');
+            (typeof res.body.data.location).should.equal('object');
+            res.body.data.id.should.equal(1);
+        });
+    });
+
+    describe('All, unfiltered', () => {
+        it('should get all cases successfully', async function(){
+            this.timeout(10000);
+            
+            const res = await chai.getJSON("/case/all").send({});
+            res.should.have.status(200);
+            Array.isArray(res.body.data).should.equal(true);
+            //Not sure how many cases are in database //TODO check that
+            expect(res.body.data).to.have.lengthOf.above(2);
+            res.body.data[0].id.should.equal(1);
+            //rest of content tested elsewhere, just checking that it works here.
+            
+        });
+        
+        it('should get all cases in CSV format', async function(){
+            this.timeout(10000);
+
+            const res = await chai.request(app).get("/case/all").set('accept','text/csv').send({});
+            res.should.have.status(200);
+            expect(res).to.have.header('content-type','text/csv; charset=utf-8');
+            expect(res).to.have.header('content-disposition','attachment; filename=allcases.csv');
+            //Probably should add a md5 checksum or something
+        });
+            
+        it('should get all cases in XML format', async function(){
+            this.timeout(10000);
+
+            const res = await chai.request(app).get("/case/all").set('accept','application/xml').send({});
+            res.should.have.status(200);
+            expect(res).to.have.header('content-type','application/xml; charset=utf-8');
+            expect(res).to.have.header('content-disposition','attachment; filename=allcases.xml');
+            //Probably should add a md5 checksum or something
+        });
+
+    });
+
+    describe('All, filtered', () => {
+        const filter1 = "{%22id%22%3Anull}"
+        const filter2 = "{%22type%22%3Anull%2C%22location%22%3A{%22latitude%22%3Anull}}"
+
+        it('should get all cases successfully, with id filtered out of all cases.', async function(){
+            this.timeout(10000);
+            
+            const res = await chai.getJSON("/case/all?filter="+filter1).send({});
+            res.should.have.status(200);
+            Array.isArray(res.body.data).should.equal(true);
+            //Not sure how many cases are in database //TODO check that
+            expect(res.body.data).to.have.lengthOf.above(2);
+
+            for (var i = 0; i < res.body.length/2; i++){
+                res.body.data[i].type.should.equal('case');
+                (typeof res.body.data[i].id).should.equal('undefined');
+            }
+            //rest of content tested elsewhere, just checking that it works here.
+            
+        });
+
+        it('should get all cases successfully, with type and location.latitude removed.', async function(){
+            this.timeout(10000);
+            
+            const res = await chai.getJSON("/case/all?filter="+filter2).send({});
+            res.should.have.status(200);
+            Array.isArray(res.body.data).should.equal(true);
+            //Not sure how many cases are in database //TODO check that
+            expect(res.body.data).to.have.lengthOf.above(2);
+
+            for (var i = 0; i < res.body.length/2; i++){
+                (typeof res.body.data[i].id).should.equal('number');
+                (typeof res.body.data[i].type).should.equal('undefined');
+                (typeof res.body.data[i].location).should.equal('object');
+                (typeof res.body.data[i].location.latitude).should.equal('undefined');
+                (typeof res.body.data[i].location.longitude).should.equal('string');
+            }
+            //rest of content tested elsewhere, just checking that it works here.
+            
+        });
+    });
+
+    describe('getting fields', () => {
+        it('should be the same as the template.', async function(){
+            const res = await chai.getJSON("/case/fields").send({});
+            res.should.have.status(200);
+            
+            const templ = templates.caseTemplate;
+            assert.equal(JSON.stringify(res.body), JSON.stringify(templ));
+        });
     });
 
 });
 
+describe('method Data', () => {
+    describe('Single, unfiltered', () => {
+        it('should get one method successfully', async () => {
+            const res = await chai.getJSON("/method/145").send({});
+            res.should.have.status(200);
+            res.body.data.id.should.equal(145);
+            //rest of content tested elsewhere, just checking that it works here.
+        });
+        
+        it('should get one method in CSV format', async () => {
+            const res = await chai.request(app).get("/method/145").set('accept','text/csv').send({});
+            res.should.have.status(200);
+            expect(res).to.have.header('content-type','text/csv; charset=utf-8');
+            expect(res).to.have.header('content-disposition','attachment; filename=method.csv');
+            //Probably should add a md5 checksum or something
+        });
+            
+        it('should get one method in XML format', async () => {
+            const res = await chai.request(app).get("/method/145").set('accept','application/xml').send({});
+            res.should.have.status(200);
+            expect(res).to.have.header('content-type','application/xml; charset=utf-8');
+            expect(res).to.have.header('content-disposition','attachment; filename=method.xml');
+            //Probably should add a md5 checksum or something
+        });
+
+    });
+
+    describe('Single, filtered', () => {
+        const filter1 = "{%22id%22%3Anull}"
+        const filter2 = "{%22type%22%3Anull%2C%22location%22%3A{%22latitude%22%3Anull}}"
+
+        it('should get one method with id filtered out', async () => {
+            const res = await chai.getJSON("/method/145?filter="+filter1).send({});
+            res.should.have.status(200);
+            (typeof res.body.data.id).should.equal('undefined');
+            res.body.data.type.should.equal('method');
+        });
+        
+        it('should get one method with type and latitude filtered out', async () => {
+            const res = await chai.getJSON("/method/145?filter="+filter2).send({});
+            res.should.have.status(200);
+            (typeof res.body.data.type).should.equal('undefined');
+            (typeof res.body.data.location.latitude).should.equal('undefined');
+            (typeof res.body.data.location).should.equal('object');
+            res.body.data.id.should.equal(145);
+        });
+    });
+
+    describe('All, unfiltered', () => {
+        it('should get all methods successfully', async function(){
+            this.timeout(10000);
+            
+            const res = await chai.getJSON("/method/all").send({});
+            res.should.have.status(200);
+            Array.isArray(res.body.data).should.equal(true);
+            //Not sure how many methods are in database //TODO check that
+            expect(res.body.data).to.have.lengthOf.above(2);
+            res.body.data[0].id.should.equal(145);
+            //rest of content tested elsewhere, just checking that it works here.
+            
+        });
+        
+        it('should get all methods in CSV format', async function(){
+            this.timeout(10000);
+
+            const res = await chai.request(app).get("/method/all").set('accept','text/csv').send({});
+            res.should.have.status(200);
+            expect(res).to.have.header('content-type','text/csv; charset=utf-8');
+            expect(res).to.have.header('content-disposition','attachment; filename=allmethods.csv');
+            //Probably should add a md5 checksum or something
+        });
+            
+        it('should get all methods in XML format', async function(){
+            this.timeout(10000);
+
+            const res = await chai.request(app).get("/method/all").set('accept','application/xml').send({});
+            res.should.have.status(200);
+            expect(res).to.have.header('content-type','application/xml; charset=utf-8');
+            expect(res).to.have.header('content-disposition','attachment; filename=allmethods.xml');
+            //Probably should add a md5 checksum or something
+        });
+
+    });
+
+    describe('All, filtered', () => {
+        const filter1 = "{%22id%22%3Anull}"
+        const filter2 = "{%22type%22%3Anull%2C%22location%22%3A{%22latitude%22%3Anull}}"
+
+        it('should get all methods successfully, with id filtered out of all methods.', async function(){
+            this.timeout(10000);
+            
+            const res = await chai.getJSON("/method/all?filter="+filter1).send({});
+            res.should.have.status(200);
+            Array.isArray(res.body.data).should.equal(true);
+            //Not sure how many methods are in database //TODO check that
+            expect(res.body.data).to.have.lengthOf.above(2);
+
+            for (var i = 0; i < res.body.length/2; i++){
+                res.body.data[i].type.should.equal('method');
+                (typeof res.body.data[i].id).should.equal('undefined');
+            }
+            //rest of content tested elsewhere, just checking that it works here.
+            
+        });
+
+        it('should get all methods successfully, with type and location.latitude removed.', async function(){
+            this.timeout(10000);
+            
+            const res = await chai.getJSON("/method/all?filter="+filter2).send({});
+            res.should.have.status(200);
+            Array.isArray(res.body.data).should.equal(true);
+            //Not sure how many methods are in database //TODO check that
+            expect(res.body.data).to.have.lengthOf.above(2);
+
+            for (var i = 0; i < res.body.length/2; i++){
+                (typeof res.body.data[i].id).should.equal('number');
+                (typeof res.body.data[i].type).should.equal('undefined');
+                (typeof res.body.data[i].location).should.equal('object');
+                (typeof res.body.data[i].location.latitude).should.equal('undefined');
+                (typeof res.body.data[i].location.longitude).should.equal('string');
+            }
+            //rest of content tested elsewhere, just checking that it works here.
+            
+        });
+    });
+
+    describe('getting fields', () => {
+        it('should be the same as the template.', async function(){
+            const res = await chai.getJSON("/method/fields").send({});
+            res.should.have.status(200);
+            
+            const templ = templates.methodTemplate;
+            assert.equal(JSON.stringify(res.body), JSON.stringify(templ));
+        });
+    });
+
+});
+
+
+describe('organization Data', () => {
+    describe('Single, unfiltered', () => {
+        it('should get one organization successfully', async () => {
+            const res = await chai.getJSON("/organization/199").send({});
+            res.should.have.status(200);
+            res.body.data.id.should.equal(199);
+            //rest of content tested elsewhere, just checking that it works here.
+        });
+        
+        it('should get one organization in CSV format', async () => {
+            const res = await chai.request(app).get("/organization/199").set('accept','text/csv').send({});
+            res.should.have.status(200);
+            expect(res).to.have.header('content-type','text/csv; charset=utf-8');
+            expect(res).to.have.header('content-disposition','attachment; filename=organization.csv');
+            //Probably should add a md5 checksum or something
+        });
+            
+        it('should get one organization in XML format', async () => {
+            const res = await chai.request(app).get("/organization/199").set('accept','application/xml').send({});
+            res.should.have.status(200);
+            expect(res).to.have.header('content-type','application/xml; charset=utf-8');
+            expect(res).to.have.header('content-disposition','attachment; filename=organization.xml');
+            //Probably should add a md5 checksum or something
+        });
+
+    });
+
+    describe('Single, filtered', () => {
+        const filter1 = "{%22id%22%3Anull}"
+        const filter2 = "{%22type%22%3Anull%2C%22location%22%3A{%22latitude%22%3Anull}}"
+
+        it('should get one organization with id filtered out', async () => {
+            const res = await chai.getJSON("/organization/199?filter="+filter1).send({});
+            res.should.have.status(200);
+            (typeof res.body.data.id).should.equal('undefined');
+            res.body.data.type.should.equal('organization');
+        });
+        
+        it('should get one organization with type and latitude filtered out', async () => {
+            const res = await chai.getJSON("/organization/199?filter="+filter2).send({});
+            res.should.have.status(200);
+            (typeof res.body.data.type).should.equal('undefined');
+            (typeof res.body.data.location.latitude).should.equal('undefined');
+            (typeof res.body.data.location).should.equal('object');
+            res.body.data.id.should.equal(199);
+        });
+    });
+
+    describe('All, unfiltered', () => {
+        it('should get all organizations successfully', async function(){
+            this.timeout(10000);
+            
+            const res = await chai.getJSON("/organization/all").send({});
+            res.should.have.status(200);
+            Array.isArray(res.body.data).should.equal(true);
+            //Not sure how many organizations are in database //TODO check that
+            expect(res.body.data).to.have.lengthOf.above(2);
+            res.body.data[0].id.should.equal(199);
+            //rest of content tested elsewhere, just checking that it works here.
+            
+        });
+        
+        it('should get all organizations in CSV format', async function(){
+            this.timeout(10000);
+
+            const res = await chai.request(app).get("/organization/all").set('accept','text/csv').send({});
+            res.should.have.status(200);
+            expect(res).to.have.header('content-type','text/csv; charset=utf-8');
+            expect(res).to.have.header('content-disposition','attachment; filename=allorganizations.csv');
+            //Probably should add a md5 checksum or something
+        });
+            
+        it('should get all organizations in XML format', async function(){
+            this.timeout(10000);
+
+            const res = await chai.request(app).get("/organization/all").set('accept','application/xml').send({});
+            res.should.have.status(200);
+            expect(res).to.have.header('content-type','application/xml; charset=utf-8');
+            expect(res).to.have.header('content-disposition','attachment; filename=allorganizations.xml');
+            //Probably should add a md5 checksum or something
+        });
+
+    });
+
+    describe('All, filtered', () => {
+        const filter1 = "{%22id%22%3Anull}"
+        const filter2 = "{%22type%22%3Anull%2C%22location%22%3A{%22latitude%22%3Anull}}"
+
+        it('should get all organizations successfully, with id filtered out of all organizations.', async function(){
+            this.timeout(10000);
+            
+            const res = await chai.getJSON("/organization/all?filter="+filter1).send({});
+            res.should.have.status(200);
+            Array.isArray(res.body.data).should.equal(true);
+            //Not sure how many organizations are in database //TODO check that
+            expect(res.body.data).to.have.lengthOf.above(2);
+
+            for (var i = 0; i < res.body.length/2; i++){
+                res.body.data[i].type.should.equal('organization');
+                (typeof res.body.data[i].id).should.equal('undefined');
+            }
+            //rest of content tested elsewhere, just checking that it works here.
+            
+        });
+
+        it('should get all organizations successfully, with type and location.latitude removed.', async function(){
+            this.timeout(10000);
+            
+            const res = await chai.getJSON("/organization/all?filter="+filter2).send({});
+            res.should.have.status(200);
+            Array.isArray(res.body.data).should.equal(true);
+            //Not sure how many organizations are in database //TODO check that
+            expect(res.body.data).to.have.lengthOf.above(2);
+
+            for (var i = 0; i < res.body.length/2; i++){
+                (typeof res.body.data[i].id).should.equal('number');
+                (typeof res.body.data[i].type).should.equal('undefined');
+                (typeof res.body.data[i].location).should.equal('object');
+                (typeof res.body.data[i].location.latitude).should.equal('undefined');
+                (typeof res.body.data[i].location.longitude).should.equal('string');
+            }
+            //rest of content tested elsewhere, just checking that it works here.
+            
+        });
+    });
+
+    describe('getting fields', () => {
+        it('should be the same as the template.', async function(){
+            const res = await chai.getJSON("/organization/fields").send({});
+            res.should.have.status(200);
+            
+            const templ = templates.organizationTemplate;
+            assert.equal(JSON.stringify(res.body), JSON.stringify(templ));
+        });
+    });
+
+});
 
 
 
