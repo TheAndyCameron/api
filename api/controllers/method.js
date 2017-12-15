@@ -116,7 +116,9 @@ router.put("/:thingid", getEditXById("method"));
  * @apiGroup Methods
  * @apiVersion 0.1.0
  * @apiName getMethodById
- * @apiParam {Number} id Method ID
+ * @apiParam {Number} id Method ID, can be 'all' or 'fields'
+ * @apiParam {JSON} filter Filtering Object as Query param
+ * @apiParam {string} accept_header Choice of data type
  *
  * @apiSuccess {Boolean} OK true if call was successful
  * @apiSuccess {String[]} errors List of error strings (when `OK` is false)

@@ -117,7 +117,9 @@ router.put("/:thingid", getEditXById("organization"));
  * @apiGroup Organizations
  * @apiVersion 0.1.0
  * @apiName getOrgById
- * @apiParam {Number} id Organization ID
+ * @apiParam {Number} id Organization ID, can be 'all' or 'fields'
+ * @apiParam {JSON} filter Filtering Object as Query param
+ * @apiParam {string} accept_header Choice of data type
  *
  * @apiSuccess {Boolean} OK true if call was successful
  * @apiSuccess {String[]} errors List of error strings (when `OK` is false)
