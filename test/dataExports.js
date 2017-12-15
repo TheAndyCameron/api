@@ -399,11 +399,14 @@ describe('XML TESTS', function() {
 	});
 	it('Test 6 - check special characters are escaped', function() {
 	    var obj = {foo:"hello"};
-	    var expected = '\t<test>\n' + '    <foo>hello</foo>\n' + '</test>\n\n';
+	    var expected = '\t<test>\n    <foo>hello</foo>\n</test>\n';
 	    assert.equal(CSVConverter.convertObjectToXML(obj, false, false, "test"), expected);
 	});
-	
-
+	it('Test 7 - check integers are passed', function() {
+	    var obj = {foo:1};
+	    var expected = '\t<?xml version=\'1.0\'?>\n<tests>\n<test>\n    <foo>1</foo>\n</test>\n'
+	    assert.equal(CSVConverter.convertObjectToXML(obj, true, false, "test"), expected);
+	});
    });
 });
 
