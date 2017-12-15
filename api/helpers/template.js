@@ -60,7 +60,7 @@ const caseTemplate =
 		  "timestamp":null,
 		  "name":null},
 	"related_cases":null,
-	"related_methods":null,
+	"related_topmethods":null,
 	"related_organizations":null,
 	"bookmarked":null}
 }
@@ -153,6 +153,7 @@ const organizationTemplate =
 	"videos":null,
 	"images":null,
 	"body": null,
+	"title": null,
 	"authors": {
 		"user_id":null,
 		"timestamp":null,
