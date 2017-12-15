@@ -3,6 +3,7 @@ const express = require("express");
 const router = express.Router(); // eslint-disable-line new-cap
 const cache = require("apicache");
 const log = require("winston");
+const template = require("../helpers/template");
 
 const { db, sql, as } = require("../helpers/db");
 
@@ -10,20 +11,14 @@ const {
   getEditXById,
   addRelatedList,
   returnThingByRequest,
+  returnSingleThingByRequest,
+  returnAllThingsByRequest,
   getThingByRequest,
   getThingByType_id_lang_userId
 } = require("../helpers/things");
 
-const {
-  convertToCSV,
-  getCSVHeaders,
-  formatGenericStructure,
-  findColumnHeadingsForStructure
-} = require("../helpers/JSONToCSVCaseConverter");
-
 const CASES_BY_COUNTRY = sql("../sql/cases_by_country.sql");
 const CREATE_CASE = sql("../sql/create_case.sql");
-const IDS_FOR_TYPE = sql("../sql/ids_for_type.sql");
 
 /**
  * @api {get} /case/countsByCountry Get case counts for each country
@@ -234,7 +229,7 @@ router.post("/new", async function postNewCase(req, res) {
 
 router.put("/:thingid", getEditXById("case"));
 
-/**
+/** //TODO UPDATE API DESCRIPTION
  * @api {get} /case/:thingid Get the last version of a case
  * @apiGroup Cases
  * @apiVersion 0.1.0
@@ -262,7 +257,22 @@ router.put("/:thingid", getEditXById("case"));
 
 // We want to extract the user ID from the auth token if it's there,
 // but not fail if not.
-router.get("/:thingid", (req, res) => returnThingByRequest("case", req, res));
+router.get("/:thingid", function getCaseData(req, res){
+    try{
+        if(req.params.thingid == 'all'){
+            returnAllThingsByRequest("case",req,res);
+        } else if(req.params.thingid == 'fields') {
+ 	        const rawfields = template.caseTemplate;
+            res.status(200).json(rawfields);
+ 
+        } else {
+            returnSingleThingByRequest("case",req,res);
+        }
+    }catch (error){
+        log.error("Exception in GET case data", req.params.thingid, error);
+        res.status(500).json({ OK: false, error: error });
+    }
+});
 
 /**
  * @api {delete} /case/:caseId Delete a case
@@ -292,82 +302,5 @@ router.delete("/:thingid", function editCaseById(req, res) {
   res.status(200).json(req.body);
 });
 
-/**
- * @api {get} /case/csv/:thingid Get a single case in CSV format
- * @apiGroup Cases
- * @apiVersion 0.1.0
- * @apiName returnCaseCsvById
- * @apiParam {Number} caseID Case ID
- *
- * @apiSuccess {attachment} case.csv Data for the case with this ID
- *
- * @apiSuccessExample Success-attachment
- *     id,type,original_language,...
- *     3,case,en,...
- *
- *
- * @apiError NotAuthenticated The user is not authenticated
- * @apiError NotAuthorized The user doesn't have permission to perform this operation.
- *
- */
-router.get("/csv/:thingid", async function returnCSVCase(req, res) {
-  try {
-    const caseObj = await getThingByRequest("case", req);
-    res.setHeader('content-type', 'text/csv');
-    res.setHeader('content-disposition', 'attachment; filename=case.csv');
-    res.status(200).send(convertToCSV([caseObj]));
-    //res.status(200).json({OK: true, data: JSON.stringify(caseObj)});
-  } catch (error) {
-    log.error("Exception in GET CSV case data", req.params.thingid, error);
-    res.status(500).json({ OK: false, error: error});
-  }
-});
-
-/**
- * @api {get} /case/all/csv Get data for all cases in CSV format
- * @apiGroup Cases
- * @apiVersion 0.1.0
- * @apiName returnAllCasesCsv
- *
- * @apiSuccess {attachment} allcases.csv Data for all cases in Participedia
- *
- * @apiSuccessExample Success-attachment
- *     id,type,original_language,...
- *     3,case,en,...
- *     43,case,en,...
- *     82,case,en,...
- *     ...
- *
- * @apiError NotAuthenticated The user is not authenticated
- * @apiError NotAuthorized The user doesn't have permission to perform this operation.
- *
- */
-router.get("/all/csv", async function returnAllCSVCases(req, res) {
-  try {
-    const thingtype = "case";
-    const ids = await db.any(IDS_FOR_TYPE, { thingtype });
-    res.setHeader('content-type', 'text/csv');
-    res.setHeader('content-disposition', 'attachment; filename=allcases.csv');
-    var headersSent = false;
-    var counter = 0;
-
-    ids.forEach(async function(row){
-        req.params.thingid = Number(row.id);
-        const caseObj = await getThingByRequest("case", req);
-        if (!headersSent){
-            res.write(findColumnHeadingsForStructure(caseObj)+"\n");
-            headersSent = true;
-        }
-        res.write(formatGenericStructure(caseObj)+"\n");
-        counter++;
-        if (counter == ids.length){
-            res.end();
-        }
-    });
-  } catch (error) {
-    log.error("Exception in GET all CSV case data", req.params.thingid, error);
-    res.status(500).json({ OK: false, error: error });
-  }
-});
 
 module.exports = router;

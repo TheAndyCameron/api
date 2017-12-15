@@ -4,6 +4,7 @@ const express = require("express");
 const router = express.Router(); // eslint-disable-line new-cap
 const cache = require("apicache");
 const log = require("winston");
+const template = require("../helpers/template");
 
 const { db, sql, as } = require("../helpers/db");
 
@@ -13,8 +14,11 @@ const {
   getEditXById,
   addRelatedList,
   returnThingByRequest,
-  getThingByType_id_lang_userId
+  getThingByType_id_lang_userId,
+  returnSingleThingByRequest,
+  returnAllThingsByRequest
 } = require("../helpers/things");
+
 
 /**
  * @api {post} /organization/new Create new organization
@@ -134,9 +138,21 @@ router.put("/:thingid", getEditXById("organization"));
  *
  */
 
-router.get("/:thingid", (req, res) =>
-  returnThingByRequest("organization", req, res)
-);
+router.get("/:thingid", function getOrganizationData(req, res){
+    try{
+        if(req.params.thingid == 'all'){
+            returnAllThingsByRequest("organization",req,res); 
+        } else if(req.params.thingid == 'fields') {
+	    res.status(200).json(template.organizationTemplate);
+	} else{
+	    returnSingleThingByRequest("organization",req,res)
+           
+        }
+    }catch (error){
+        log.error("Exception in GET organization data", req.params.thingid, error);
+        res.status(500).json({ OK: false, error: error });
+    }
+});
 
 /**
  * @api {delete} /organization/:id Delete an organization

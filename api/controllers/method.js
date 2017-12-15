@@ -3,6 +3,7 @@ const express = require("express");
 const router = express.Router(); // eslint-disable-line new-cap
 const cache = require("apicache");
 const log = require("winston");
+const template = require("../helpers/template");
 
 const { db, sql, as } = require("../helpers/db");
 
@@ -12,8 +13,11 @@ const {
   getEditXById,
   addRelatedList,
   returnThingByRequest,
-  getThingByType_id_lang_userId
+  getThingByType_id_lang_userId,
+  returnSingleThingByRequest,
+  returnAllThingsByRequest
 } = require("../helpers/things");
+
 
 /**
  * @api {post} /method/new Create new method
@@ -131,7 +135,20 @@ router.put("/:thingid", getEditXById("method"));
  *
  */
 
-router.get("/:thingid", (req, res) => returnThingByRequest("method", req, res));
+router.get("/:thingid", function getMethodData(req, res){
+    try{
+        if(req.params.thingid == 'all'){
+             returnAllThingsByRequest("method",req,res);
+        } else if(req.params.thingid == 'fields') {
+	     res.status(200).json(template.methodTemplate);
+	    } else{
+            returnSingleThingByRequest("method",req,res);
+        }
+    }catch (error){
+        log.error("Exception in GET method data", req.params.thingid, error);
+        res.status(500).json({ OK: false, error: error });
+    }
+});
 
 /**
  * @api {delete} /method/:id Delete a method
