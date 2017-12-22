@@ -189,6 +189,7 @@ const organizationTemplate =
 	"videos":null,
 	"images":null,
 	"body": null,
+	"title": null,
 	"authors": {
 		"user_id":null,
 		"timestamp":null,
