@@ -3,10 +3,11 @@ const json2xmlparser = require("js2xmlparser");
 
 const knownObjListKeys = {
     "files":["files_url_list","files_title_list","files_size_list"],
-    "authors":["authors_user_id_list","authors_timestamp_list","authors_name_list"]
-    //TODO Related Cases
-    //TODO Related Methods
-    //TODO Related Organizations
+    "authors":["authors_user_id_list","authors_timestamp_list","authors_name_list"],
+    "related_cases":["related_cases_id_list","related_cases_title_list","related_cases_type_list","related_cases_images_list","related_cases_post_date_list","related_cases_updated_date_list"],
+    "related_methods":["related_methods_id_list","related_methods_title_list","related_methods_type_list","related_methods_images_list","related_methods_post_date_list","related_methods_updated_date_list"],
+    "related_organizations":["related_organizations_id_list","related_organizations_title_list","related_organizations_type_list","related_organizations_images_list","related_organizations_post_date_list","related_organizations_updated_date_list"]
+
 }
 
 
